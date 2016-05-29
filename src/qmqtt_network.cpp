@@ -32,9 +32,11 @@
 #include <QDataStream>
 #include "qmqtt_network.h"
 #include "qmqtt_socket.h"
+#include "qmqtt_ssl_socket.h"
 #include "qmqtt_timer.h"
 
 const QHostAddress DEFAULT_HOST = QHostAddress::LocalHost;
+const QString DEFAULT_HOST_NAME = QStringLiteral("localhost");
 const quint16 DEFAULT_PORT = 1883;
 const bool DEFAULT_AUTORECONNECT = false;
 const int DEFAULT_AUTORECONNECT_INTERVAL_MS = 5000;
@@ -51,6 +53,25 @@ QMQTT::Network::Network(QObject* parent)
 {
     initialize();
 }
+
+#ifndef QT_NO_SSL
+
+QMQTT::Network::Network(bool ssl, bool ignoreSelfSigned, QObject* parent)
+    : NetworkInterface(parent)
+    , _port(DEFAULT_PORT)
+    , _hostName(DEFAULT_HOST_NAME)
+    , _autoReconnect(DEFAULT_AUTORECONNECT)
+    , _autoReconnectInterval(DEFAULT_AUTORECONNECT_INTERVAL_MS)
+    , _bytesRemaining(0)
+    , _socket(ssl ?
+        static_cast<QMQTT::SocketInterface *>(new QMQTT::SslSocket(ignoreSelfSigned)) :
+        new QMQTT::Socket)
+    , _autoReconnectTimer(new QMQTT::Timer)
+{
+    initialize();
+}
+
+#endif // QT_NO_SSL
 
 QMQTT::Network::Network(SocketInterface* socketInterface, TimerInterface* timerInterface,
                         QObject* parent)
@@ -96,6 +117,7 @@ bool QMQTT::Network::isConnectedToHost() const
 void QMQTT::Network::connectToHost(const QHostAddress& host, const quint16 port)
 {
     _host = host;
+    _hostName.clear();
     _port = port;
     connectToHost();
 }

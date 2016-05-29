@@ -52,6 +52,9 @@ class Network : public NetworkInterface
 
 public:
     Network(QObject* parent = NULL);
+#ifndef QT_NO_SSL
+    Network(bool ssl, bool ignoreSelfSigned, QObject* parent = NULL);
+#endif // QT_NO_SSL
     Network(SocketInterface* socketInterface, TimerInterface* timerInterface,
             QObject* parent = NULL);
     ~Network();
