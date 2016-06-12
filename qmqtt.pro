@@ -1,11 +1,6 @@
 TEMPLATE = subdirs
 
-SUBDIRS = src example
+SUBDIRS = src example tests
 src.file = src/qmqtt.pro
 
 example.depends = src
-
-unix:!NO_UNIT_TESTS: {
-    SUBDIRS += gtest tests
-    tests.depends = gtest src
-}
