@@ -149,10 +149,8 @@ void QMQTT::ClientPrivate::connectToHost()
 
 void QMQTT::ClientPrivate::onNetworkConnected()
 {
-    Q_Q(Client);
     sendConnect();
     startKeepAlive();
-    emit q->connected();
 }
 
 void QMQTT::ClientPrivate::sendConnect()
@@ -384,8 +382,9 @@ void QMQTT::ClientPrivate::onNetworkReceived(const QMQTT::Frame& frm)
 
 void QMQTT::ClientPrivate::handleConnack(const quint8 ack)
 {
+    Q_Q(Client);
     Q_UNUSED(ack);
-    // todo: send connected signal
+    emit q->connected();
 }
 
 void QMQTT::ClientPrivate::handlePublish(const Message& message)
