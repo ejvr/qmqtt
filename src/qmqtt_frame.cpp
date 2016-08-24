@@ -89,26 +89,48 @@ QByteArray Frame::data() const
     return _data;
 }
 
-quint8 Frame::readChar()
+quint8 Frame::readChar(bool *ok)
 {
+    if (_data.isEmpty() && ok != 0) {
+        *ok = false;
+        return 0;
+    }
     char c = _data.at(0);
     _data.remove(0, 1);
+    if (ok != 0)
+        *ok = true;
     return c;
 }
 
-quint16 Frame::readInt()
+quint16 Frame::readInt(bool *ok)
 {
+    if (_data.size() < 2 && ok != 0) {
+        *ok = false;
+        return 0;
+    }
     quint8 msb = static_cast<quint8>(_data.at(0));
     quint8 lsb = static_cast<quint8>(_data.at(1));
     _data.remove(0, 2);
+    if (ok != 0)
+        *ok = true;
     return (msb << 8) | lsb;
 }
 
-QString Frame::readString()
+QString Frame::readString(bool *ok)
 {
-    quint16 len = readInt();
+    quint16 len = readInt(ok);
+    if (ok != 0) {
+        if (!*ok)
+            return QString();
+        if (_data.size() < len) {
+            *ok = false;
+            return QString();
+        }
+    }
     QString s(_data.left(len));
     _data.remove(0, len);
+    if (ok != 0)
+        *ok = true;
     return s;
 }
 

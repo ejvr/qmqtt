@@ -334,21 +334,28 @@ void QMQTT::ClientPrivate::onNetworkReceived(const QMQTT::Frame& frm)
     quint8 header = frame.header();
     quint8 type = GETTYPE(header);
     Message message;
+    bool ok = false;
+    char c = 0;
 
     switch(type)
     {
     case CONNACK:
-        frame.readChar();
-        handleConnack(frame.readChar());
+        frame.readChar(&ok);
+        c = frame.readChar(&ok);
+        if (!ok)
+            return;
+        handleConnack(c);
         break;
     case PUBLISH:
         qos = GETQOS(header);
         retain = GETRETAIN(header);
         dup = GETDUP(header);
-        topic = frame.readString();
+        topic = frame.readString(&ok);
         if( qos > QOS0) {
-            mid = frame.readInt();
+            mid = frame.readInt(&ok);
         }
+        if (!ok)
+            return;
         message.setId(mid);
         message.setTopic(topic);
         message.setPayload(frame.data());
@@ -361,12 +368,16 @@ void QMQTT::ClientPrivate::onNetworkReceived(const QMQTT::Frame& frm)
     case PUBREC:
     case PUBREL:
     case PUBCOMP:
-        mid = frame.readInt();
+        mid = frame.readInt(&ok);
+        if (!ok)
+            return;
         handlePuback(type, mid);
         break;
     case SUBACK:
-        mid = frame.readInt();
-        qos = frame.readChar();
+        mid = frame.readInt(&ok);
+        qos = frame.readChar(&ok);
+        if (!ok)
+            return;
         // todo: send a subscribed signal (only in certain cases? mid? qos?)
         break;
     case UNSUBACK:

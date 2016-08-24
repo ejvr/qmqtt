@@ -100,9 +100,9 @@ public:
     quint8 header() const;
     QByteArray data() const;
 
-    quint16 readInt();
-    quint8 readChar();
-    QString readString();
+    quint16 readInt(bool *ok = 0);
+    quint8 readChar(bool *ok = 0);
+    QString readString(bool *ok = 0);
 
     void writeInt(const quint16 i);
     void writeChar(const quint8 c);
