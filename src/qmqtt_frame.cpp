@@ -127,7 +127,7 @@ QString Frame::readString(bool *ok)
             return QString();
         }
     }
-    QString s(_data.left(len));
+    QString s = QString::fromUtf8(_data.left(len));
     _data.remove(0, len);
     if (ok != 0)
         *ok = true;

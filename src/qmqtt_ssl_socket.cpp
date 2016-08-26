@@ -72,6 +72,14 @@ void QMQTT::SslSocket::connectToHost(const QHostAddress& address, quint16 port)
 
 void QMQTT::SslSocket::connectToHost(const QString& hostName, quint16 port)
 {
+<<<<<<< HEAD
+=======
+    QSslConfiguration sslConf = _socket.data()->sslConfiguration();
+    sslConf.setProtocol(QSsl::TlsV1_2);
+    sslConf.setLocalCertificate(QSslCertificate::fromPath(QStringLiteral("./cert.crt")).first());   //LocalCertificate
+    _socket.data()->setSslConfiguration(sslConf);
+    _socket.data()->setPrivateKey(QStringLiteral("./cert.key"));                    //LocalPrivateKey
+>>>>>>> 9ecbffd... Fix build with QT_NO_CAST_TO_ASCII / QT_NO_CAST_FROM_ASCII
     _socket->connectToHostEncrypted(hostName, port);
     if (!_socket->waitForEncrypted())
     {
