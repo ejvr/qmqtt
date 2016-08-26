@@ -1,7 +1,8 @@
 /*
- * qmqtt_timer.h - qmqtt timer header
+ * qmqtt_ssl_socket_p.h - qmqtt SSL socket private header
  *
  * Copyright (c) 2013  Ery Lee <ery.lee at gmail dot com>
+ * Copyright (c) 2016  Matthias Dieter Wallnöfer
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,32 +30,45 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  */
-#ifndef QMQTT_TIMER_H
-#define QMQTT_TIMER_H
+#ifndef QMQTT_SSL_SOCKET_P_H
+#define QMQTT_SSL_SOCKET_P_H
 
-#include "qmqtt_timerinterface.h"
-#include <QTimer>
+#include "qmqtt_socketinterface.h"
+#include <QObject>
+#include <QScopedPointer>
 
-namespace QMQTT {
+#ifndef QT_NO_SSL
 
-class Timer : public TimerInterface
+class QSslSocket;
+class QSslError;
+
+namespace QMQTT
+{
+
+class SslSocket : public SocketInterface
 {
     Q_OBJECT
 public:
-    explicit Timer(QObject *parent = 0);
-    virtual ~Timer();
+    explicit SslSocket(bool ignoreSelfSigned, QObject* parent = NULL);
+    virtual ~SslSocket();
 
-    bool isSingleShot() const;
-    void setSingleShot(bool singleShot);
-    int interval() const;
-    void setInterval(int msec);
-    void start();
-    void stop();
+    virtual QIODevice *ioDevice();
+    void connectToHost(const QHostAddress& address, quint16 port);
+    void connectToHost(const QString& hostName, quint16 port);
+    void disconnectFromHost();
+    QAbstractSocket::SocketState state() const;
+    QAbstractSocket::SocketError error() const;
+
+protected slots:
+    void sslErrors(const QList<QSslError> &errors);
 
 protected:
-    QTimer _timer;
+    QScopedPointer<QSslSocket> _socket;
+    bool _ignoreSelfSigned;
 };
 
 }
 
-#endif // QMQTT_TIMER_H
+#endif // QT_NO_SSL
+
+#endif // QMQTT_SSL_SOCKET_P_H

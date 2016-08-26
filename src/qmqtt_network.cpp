@@ -30,10 +30,10 @@
  *
  */
 #include <QDataStream>
-#include "qmqtt_network.h"
-#include "qmqtt_socket.h"
-#include "qmqtt_ssl_socket.h"
-#include "qmqtt_timer.h"
+#include "qmqtt_network_p.h"
+#include "qmqtt_socket_p.h"
+#include "qmqtt_ssl_socket_p.h"
+#include "qmqtt_timer_p.h"
 
 const QHostAddress DEFAULT_HOST = QHostAddress::LocalHost;
 const QString DEFAULT_HOST_NAME = QStringLiteral("localhost");

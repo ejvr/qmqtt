@@ -1,8 +1,7 @@
 /*
- * qmqtt_ssl_socket.h - qmqtt SSL socket header
+ * qmqtt_socket_p.h - qmqtt socket private header
  *
  * Copyright (c) 2013  Ery Lee <ery.lee at gmail dot com>
- * Copyright (c) 2016  Matthias Dieter Wallnöfer
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,27 +29,24 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  */
-#ifndef QMQTT_SSL_SOCKET_H
-#define QMQTT_SSL_SOCKET_H
+#ifndef QMQTT_SOCKET_P_H
+#define QMQTT_SOCKET_P_H
 
 #include "qmqtt_socketinterface.h"
 #include <QObject>
 #include <QScopedPointer>
 
-#ifndef QT_NO_SSL
-
-class QSslSocket;
-class QSslError;
+class QTcpSocket;
 
 namespace QMQTT
 {
 
-class SslSocket : public SocketInterface
+class Socket : public SocketInterface
 {
     Q_OBJECT
 public:
-    explicit SslSocket(bool ignoreSelfSigned, QObject* parent = NULL);
-    virtual ~SslSocket();
+    explicit Socket(QObject* parent = NULL);
+    virtual	~Socket();
 
     virtual QIODevice *ioDevice();
     void connectToHost(const QHostAddress& address, quint16 port);
@@ -59,16 +55,10 @@ public:
     QAbstractSocket::SocketState state() const;
     QAbstractSocket::SocketError error() const;
 
-protected slots:
-    void sslErrors(const QList<QSslError> &errors);
-
 protected:
-    QScopedPointer<QSslSocket> _socket;
-    bool _ignoreSelfSigned;
+    QScopedPointer<QTcpSocket> _socket;
 };
 
 }
 
-#endif // QT_NO_SSL
-
-#endif // QMQTT_SSL_SOCKET_H
+#endif // QMQTT_SOCKET_P_H
