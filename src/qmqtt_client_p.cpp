@@ -93,7 +93,19 @@ void QMQTT::ClientPrivate::init(const QString& hostName, const quint16 port, con
 
     _hostName = hostName;
     _port = port;
-    _network.reset(new Network(ssl, ignoreSelfSigned));
+    if (ssl)
+    {
+#ifndef QT_NO_SSL
+        _network.reset(new Network(ssl, ignoreSelfSigned));
+#else
+        Q_UNUSED(ignoreSelfSigned)
+        qCritical() << "SSL not supported in this QT build";
+#endif // QT_NO_SSL
+    }
+    else
+    {
+        _network.reset(new Network);
+    }
 
     initializeErrorHash();
 
