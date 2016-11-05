@@ -41,7 +41,7 @@ QT_FORWARD_DECLARE_CLASS(QTcpSocket)
 namespace QMQTT
 {
 
-class Socket : public SocketInterface
+class Q_MQTT_EXPORT Socket : public SocketInterface
 {
     Q_OBJECT
 public:

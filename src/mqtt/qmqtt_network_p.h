@@ -46,7 +46,7 @@ namespace QMQTT {
 class SocketInterface;
 class TimerInterface;
 
-class Network : public NetworkInterface
+class Q_MQTT_EXPORT Network : public NetworkInterface
 {
     Q_OBJECT
 
