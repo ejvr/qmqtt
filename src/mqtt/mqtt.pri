@@ -16,7 +16,6 @@ PRIVATE_HEADERS += \
     $$PWD/qmqtt_message_p.h \
     $$PWD/qmqtt_network_p.h \
     $$PWD/qmqtt_socket_p.h \
-    $$PWD/qmqtt_ssl_network_p.h \
     $$PWD/qmqtt_ssl_socket_p.h \
     $$PWD/qmqtt_timer_p.h
 
