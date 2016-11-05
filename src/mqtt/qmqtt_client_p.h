@@ -37,6 +37,10 @@
 #include "qmqtt_network_p.h"
 #include <QTimer>
 
+#ifndef QT_NO_SSL
+QT_FORWARD_DECLARE_CLASS(QSslConfiguration)
+#endif // QT_NO_SSL
+
 namespace QMQTT {
 
 class ClientPrivate
@@ -47,6 +51,9 @@ public:
 
     void init(const QHostAddress& host, const quint16 port, NetworkInterface* network = NULL);
     void init(const QString& hostName, const quint16 port, const bool ssl, const bool ignoreSelfSigned);
+#ifndef QT_NO_SSL
+    void init(const QString& hostName, const quint16 port, const QSslConfiguration &config);
+#endif // QT_NO_SSL
 
     QHostAddress _host;
     QString _hostName;

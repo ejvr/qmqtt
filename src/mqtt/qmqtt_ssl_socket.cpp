@@ -31,18 +31,17 @@
  *
  */
 #include "qmqtt_ssl_socket_p.h"
-#include <QSslSocket>
-#include <QSslConfiguration>
-#include <QSslCertificate>
-#include <QSslKey>
 
 #ifndef QT_NO_SSL
 
-QMQTT::SslSocket::SslSocket(bool ignoreSelfSigned, QObject* parent)
+#include <QSslSocket>
+#include <QSslConfiguration>
+
+QMQTT::SslSocket::SslSocket(const QSslConfiguration &config, QObject *parent)
     : SocketInterface(parent)
     , _socket(new QSslSocket)
-    , _ignoreSelfSigned(ignoreSelfSigned)
 {
+    _socket->setSslConfiguration(config);
     connect(_socket.data(), &QSslSocket::encrypted,    this, &SocketInterface::connected);
     connect(_socket.data(), &QSslSocket::disconnected, this, &SocketInterface::disconnected);
     connect(_socket.data(),
@@ -73,21 +72,9 @@ void QMQTT::SslSocket::connectToHost(const QHostAddress& address, quint16 port)
     emit _socket->error(QAbstractSocket::ConnectionRefusedError);
 }
 
-//put the crt and key file into application running directory
-//todo:set file path on instance if necessary
 void QMQTT::SslSocket::connectToHost(const QString& hostName, quint16 port)
 {
-    QSslConfiguration sslConf = _socket.data()->sslConfiguration();
-    sslConf.setLocalCertificate(QSslCertificate::fromPath(QStringLiteral("./cert.crt")).first());   //LocalCertificate
-    _socket.data()->setSslConfiguration(sslConf);
-    _socket.data()->setPrivateKey(QStringLiteral("./cert.key"));                    //LocalPrivateKey
     _socket->connectToHostEncrypted(hostName, port);
-    _socket.data()->setPeerVerifyMode(QSslSocket::VerifyNone);                      //important
-
-    if (!_socket->waitForEncrypted())
-    {
-        qCritical() << QStringLiteral("qmqtt SSL: ") << _socket->errorString();
-    }
 }
 
 void QMQTT::SslSocket::disconnectFromHost()
@@ -108,12 +95,7 @@ QAbstractSocket::SocketError QMQTT::SslSocket::error() const
 void QMQTT::SslSocket::sslErrors(const QList<QSslError> &errors)
 {
     Q_UNUSED(errors);
-
-    if (_ignoreSelfSigned)
-    {
-        // allow self-signed certificates
-        _socket->ignoreSslErrors();
-    }
+    qCritical("qmqtt: errors while connecting over SSL, %s", qPrintable(_socket->errorString()));
 }
 
 #endif // QT_NO_SSL

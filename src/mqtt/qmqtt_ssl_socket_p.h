@@ -39,8 +39,9 @@
 
 #ifndef QT_NO_SSL
 
-class QSslSocket;
-class QSslError;
+QT_FORWARD_DECLARE_CLASS(QSslConfiguration)
+QT_FORWARD_DECLARE_CLASS(QSslSocket)
+QT_FORWARD_DECLARE_CLASS(QSslError)
 
 namespace QMQTT
 {
@@ -49,7 +50,7 @@ class SslSocket : public SocketInterface
 {
     Q_OBJECT
 public:
-    explicit SslSocket(bool ignoreSelfSigned, QObject* parent = NULL);
+    explicit SslSocket(const QSslConfiguration &config, QObject* parent = NULL);
     virtual ~SslSocket();
 
     virtual QIODevice *ioDevice();
@@ -64,7 +65,6 @@ protected slots:
 
 protected:
     QScopedPointer<QSslSocket> _socket;
-    bool _ignoreSelfSigned;
 };
 
 }

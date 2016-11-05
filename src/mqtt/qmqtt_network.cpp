@@ -56,15 +56,13 @@ QMQTT::Network::Network(QObject* parent)
 
 #ifndef QT_NO_SSL
 
-QMQTT::Network::Network(bool ssl, bool ignoreSelfSigned, QObject* parent)
+QMQTT::Network::Network(const QSslConfiguration &config, QObject *parent)
     : NetworkInterface(parent)
     , _port(DEFAULT_PORT)
     , _hostName(DEFAULT_HOST_NAME)
     , _autoReconnect(DEFAULT_AUTORECONNECT)
     , _autoReconnectInterval(DEFAULT_AUTORECONNECT_INTERVAL_MS)
-    , _socket(ssl ?
-        static_cast<QMQTT::SocketInterface *>(new QMQTT::SslSocket(ignoreSelfSigned)) :
-        new QMQTT::Socket)
+    , _socket(new QMQTT::SslSocket(config))
     , _autoReconnectTimer(new QMQTT::Timer)
     , _readState(Header)
 {

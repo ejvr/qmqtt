@@ -35,6 +35,10 @@
 #include <QLoggingCategory>
 #include <QUuid>
 
+#ifndef QT_NO_SSL
+#include <QSslConfiguration>
+#endif // QT_NO_SSL
+
 Q_LOGGING_CATEGORY(client, "qmqtt.client")
 
 static const quint8 QOS0 = 0x00;
@@ -96,7 +100,10 @@ void QMQTT::ClientPrivate::init(const QString& hostName, const quint16 port, con
     if (ssl)
     {
 #ifndef QT_NO_SSL
-        _network.reset(new Network(ssl, ignoreSelfSigned));
+        QSslConfiguration config = QSslConfiguration::defaultConfiguration();
+        if (ignoreSelfSigned)
+            config.setPeerVerifyMode(QSslSocket::VerifyNone);
+        _network.reset(new Network(config));
 #else
         Q_UNUSED(ignoreSelfSigned)
         qCritical() << "SSL not supported in this QT build";
@@ -119,6 +126,31 @@ void QMQTT::ClientPrivate::init(const QString& hostName, const quint16 port, con
     QObject::connect(_network.data(), &Network::error,
                      q, &Client::onNetworkError);
 }
+
+#ifndef QT_NO_SSL
+
+void QMQTT::ClientPrivate::init(const QString &hostName, const quint16 port, const QSslConfiguration &config)
+{
+    Q_Q(Client);
+
+    _hostName = hostName;
+    _port = port;
+    _network.reset(new Network(config));
+
+    initializeErrorHash();
+
+    QObject::connect(&_timer, &QTimer::timeout, q, &Client::onTimerPingReq);
+    QObject::connect(_network.data(), &Network::connected,
+                     q, &Client::onNetworkConnected);
+    QObject::connect(_network.data(), &Network::disconnected,
+                     q, &Client::onNetworkDisconnected);
+    QObject::connect(_network.data(), &Network::received,
+                     q, &Client::onNetworkReceived);
+    QObject::connect(_network.data(), &Network::error,
+                     q, &Client::onNetworkError);
+}
+
+#endif // QT_NO_SSL
 
 void QMQTT::ClientPrivate::initializeErrorHash()
 {

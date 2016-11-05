@@ -39,6 +39,10 @@
 #include <QScopedPointer>
 #include <QHostAddress>
 
+#ifndef QT_NO_SSL
+QT_FORWARD_DECLARE_CLASS(QSslConfiguration)
+#endif // QT_NO_SSL
+
 namespace QMQTT {
 
 static const quint8 LIBRARY_VERSION_MAJOR = 0;
@@ -121,6 +125,13 @@ public:
            const bool ssl,
            const bool ignoreSelfSigned,
            QObject* parent = NULL);
+
+#ifndef QT_NO_SSL
+    Client(const QString& hostName,
+           const quint16 port,
+           const QSslConfiguration &config,
+           QObject* parent = NULL);
+#endif // QT_NO_SSL
 
     // for testing purposes only
     Client(NetworkInterface* network,
