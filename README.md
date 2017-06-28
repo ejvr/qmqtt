@@ -3,22 +3,18 @@ QMQTT
 
 mqtt client for Qt
 
-**Please compile the library with >=Qt 5.3 version.**
+**Please compile the library with Qt >= 5.3 version. On Windows you need to specify `CONFIG += NO_UNIT_TESTS`, since gtest is not supported.**
+
 Usage
 =====
 
-	#include "qmqtt.h"
+    #include "qmqtt.h"
 
-        QMQTT::Client *client = new QMQTT::Client(QHostAddress::LocalHost, 1883);
-
-	client->setClientId("clientId");
-
-	client->setUsername("user");
-
-	client->setPassword("password");
-
-	client->connectToHost();
-
+    QMQTT::Client *client = new QMQTT::Client(QHostAddress::LocalHost, 1883);
+    client->setClientId("clientId");
+    client->setUsername("user");
+    client->setPassword("password");
+    client->connectToHost();
 
 Slots
 =====
@@ -52,13 +48,10 @@ Signals
     void disconnected();
     void error(const QMQTT::ClientError error);
 
-    // todo: should emit on server suback (or is that only at specific QoS levels?)
-    void subscribed(const QString& topic);
-    // todo: should emit on server unsuback (or is that only at specific QoS levels?)
+    void subscribed(const QString& topic, const quint8 qos);
     void unsubscribed(const QString& topic);
-    // todo: should emit on server puback (or is that only at specific QoS levels?)
-    void published(const QMQTT::Message& message);
-
+    void published(const quint16 msgid, const quint8 qos);
+    void pingresp();
     void received(const QMQTT::Message& message);
 
 
@@ -75,10 +68,26 @@ Contributors
 
 [@rafaeldelucena](https://github.com/rafaeldelucena)
 
+[@Vortex375](https://github.com/Vortex375)
 
-Author
-======
+[@mwallnoefer](https://github.com/mwallnoefer)
 
-Feng Lee <feng@emqtt.io>   
-William Guynes <wguynes@gmail.com>
-wuming123057 <huacai123057@163.com>
+[@KonstantinRitt](https://github.com/KonstantinRitt)
+
+[@cncap](https://github.com/cncap)
+
+[@Psy-Kai](https://github.com/Psy-Kai)
+
+[@ejvr](https://github.com/ejvr)
+
+[@keytee](https://github.com/keytee)
+
+
+Authors
+=======
+
+[@emqplus](https://github.com/emqplus) Feng Lee <feng@emqtt.io>
+
+[@wguynes](https://github.com/wguynes) William Guynes <wguynes@gmail.com>
+
+[@wuming123057](https://github.com/wuming123057) Xuan <huacai123057@163.com>

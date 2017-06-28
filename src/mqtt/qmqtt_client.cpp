@@ -43,6 +43,19 @@ QMQTT::Client::Client(const QHostAddress& host,
     d->init(host, port);
 }
 
+#ifndef QT_NO_SSL
+QMQTT::Client::Client(const QString &hostName,
+                      const quint16 port,
+                      const QSslConfiguration &config,
+                      const bool ignoreSelfSigned, QObject *parent)
+    : QObject(parent)
+    , d_ptr(new ClientPrivate(this))
+{
+    Q_D(Client);
+    d->init(hostName, port, config, ignoreSelfSigned);
+}
+#endif // QT_NO_SSL
+
 QMQTT::Client::Client(const QString &hostName,
                       const quint16 port,
                       const bool ssl,
@@ -54,19 +67,6 @@ QMQTT::Client::Client(const QString &hostName,
     Q_D(Client);
     d->init(hostName, port, ssl, ignoreSelfSigned);
 }
-
-#ifndef QT_NO_SSL
-
-QMQTT::Client::Client(const QString &hostName, const quint16 port, const QSslConfiguration &config,
-                      QObject *parent)
-    : QObject(parent)
-    , d_ptr(new ClientPrivate(this))
-{
-    Q_D(Client);
-    d->init(hostName, port, config);
-}
-
-#endif // QT_NO_SSL
 
 QMQTT::Client::Client(NetworkInterface* network,
                       const QHostAddress& host,

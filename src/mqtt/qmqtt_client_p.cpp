@@ -34,9 +34,10 @@
 #include "qmqtt_message.h"
 #include <QLoggingCategory>
 #include <QUuid>
-
 #ifndef QT_NO_SSL
+#include <QFile>
 #include <QSslConfiguration>
+#include <QSslKey>
 #endif // QT_NO_SSL
 
 Q_LOGGING_CATEGORY(client, "qmqtt.client")
@@ -65,45 +66,46 @@ QMQTT::ClientPrivate::~ClientPrivate()
 
 void QMQTT::ClientPrivate::init(const QHostAddress& host, const quint16 port, NetworkInterface* network)
 {
-    Q_Q(Client);
-
     _host = host;
     _port = port;
     if(network == NULL)
     {
-        _network.reset(new Network);
+        init(new Network);
     }
     else
     {
-        _network.reset(network);
+        init(network);
     }
-
-    initializeErrorHash();
-
-    QObject::connect(&_timer, &QTimer::timeout, q, &Client::onTimerPingReq);
-    QObject::connect(_network.data(), &Network::connected,
-                     q, &Client::onNetworkConnected);
-    QObject::connect(_network.data(), &Network::disconnected,
-                     q, &Client::onNetworkDisconnected);
-    QObject::connect(_network.data(), &Network::received,
-                     q, &Client::onNetworkReceived);
-    QObject::connect(_network.data(), &Network::error,
-                     q, &Client::onNetworkError);
 }
 
-void QMQTT::ClientPrivate::init(const QString& hostName, const quint16 port, const bool ssl, const bool ignoreSelfSigned)
+#ifndef QT_NO_SSL
+void QMQTT::ClientPrivate::init(const QString& hostName, const quint16 port,
+                                const QSslConfiguration &config, const bool ignoreSelfSigned)
 {
-    Q_Q(Client);
+    _hostName = hostName;
+    _port = port;
+    init(new Network(config, ignoreSelfSigned));
+}
+#endif // QT_NO_SSL
 
+void QMQTT::ClientPrivate::init(const QString& hostName, const quint16 port, const bool ssl,
+                                const bool ignoreSelfSigned)
+{
     _hostName = hostName;
     _port = port;
     if (ssl)
     {
 #ifndef QT_NO_SSL
-        QSslConfiguration config = QSslConfiguration::defaultConfiguration();
-        if (ignoreSelfSigned)
-            config.setPeerVerifyMode(QSslSocket::VerifyNone);
-        _network.reset(new Network(config));
+        QSslConfiguration sslConf = QSslConfiguration::defaultConfiguration();
+        QList<QSslCertificate> certs = QSslCertificate::fromPath(QStringLiteral("./cert.crt"));
+        if (!certs.isEmpty())
+            sslConf.setLocalCertificate(certs.first());
+        QFile file(QStringLiteral("./cert.key"));
+        if (file.open(QIODevice::ReadOnly)) {
+            sslConf.setPrivateKey(QSslKey(file.readAll(), QSsl::Rsa));
+        }
+        sslConf.setPeerVerifyMode(QSslSocket::VerifyNone);
+        init(hostName, port, sslConf, ignoreSelfSigned);
 #else
         Q_UNUSED(ignoreSelfSigned)
         qCritical() << "SSL not supported in this QT build";
@@ -111,31 +113,15 @@ void QMQTT::ClientPrivate::init(const QString& hostName, const quint16 port, con
     }
     else
     {
-        _network.reset(new Network);
+        init(new Network);
     }
-
-    initializeErrorHash();
-
-    QObject::connect(&_timer, &QTimer::timeout, q, &Client::onTimerPingReq);
-    QObject::connect(_network.data(), &Network::connected,
-                     q, &Client::onNetworkConnected);
-    QObject::connect(_network.data(), &Network::disconnected,
-                     q, &Client::onNetworkDisconnected);
-    QObject::connect(_network.data(), &Network::received,
-                     q, &Client::onNetworkReceived);
-    QObject::connect(_network.data(), &Network::error,
-                     q, &Client::onNetworkError);
 }
 
-#ifndef QT_NO_SSL
-
-void QMQTT::ClientPrivate::init(const QString &hostName, const quint16 port, const QSslConfiguration &config)
+void QMQTT::ClientPrivate::init(NetworkInterface* network)
 {
     Q_Q(Client);
 
-    _hostName = hostName;
-    _port = port;
-    _network.reset(new Network(config));
+    _network.reset(network);
 
     initializeErrorHash();
 
@@ -149,8 +135,6 @@ void QMQTT::ClientPrivate::init(const QString &hostName, const quint16 port, con
     QObject::connect(_network.data(), &Network::error,
                      q, &Client::onNetworkError);
 }
-
-#endif // QT_NO_SSL
 
 void QMQTT::ClientPrivate::initializeErrorHash()
 {
@@ -336,7 +320,11 @@ quint16 QMQTT::ClientPrivate::publish(const Message& message)
 {
     Q_Q(Client);
     quint16 msgid = sendPublish(message);
-    emit q->published(message);
+
+    // Emit published only at QOS0
+    if (message.qos() == QOS0)
+        emit q->published(message.id(), QOS0);
+
     return msgid;
 }
 
@@ -347,17 +335,13 @@ void QMQTT::ClientPrivate::puback(const quint8 type, const quint16 msgid)
 
 quint16 QMQTT::ClientPrivate::subscribe(const QString& topic, const quint8 qos)
 {
-    Q_Q(Client);
     quint16 msgid = sendSubscribe(topic, qos);
-    emit q->subscribed(topic);
     return msgid;
 }
 
 void QMQTT::ClientPrivate::unsubscribe(const QString& topic)
 {
-    Q_Q(Client);
     sendUnsubscribe(topic);
-    emit q->unsubscribed(topic);
 }
 
 void QMQTT::ClientPrivate::onNetworkDisconnected()
@@ -422,13 +406,13 @@ void QMQTT::ClientPrivate::onNetworkReceived(const QMQTT::Frame& frm)
         qos = frame.readChar(&ok);
         if (!ok)
             return;
-        // todo: send a subscribed signal (only in certain cases? mid? qos?)
+        handleSuback(topic, qos);
         break;
     case UNSUBACK:
-        // todo: send an unsubscribed signal (only certain cases? mid?)
+        handleUnsuback(topic);
         break;
     case PINGRESP:
-        // todo: I know I'm suppose to do something with this. Look at specifications.
+
         break;
     default:
         break;
@@ -459,6 +443,8 @@ void QMQTT::ClientPrivate::handlePublish(const Message& message)
 
 void QMQTT::ClientPrivate::handlePuback(const quint8 type, const quint16 msgid)
 {
+    Q_Q(Client);
+
     if(type == PUBREC)
     {
         sendPuback(PUBREL, msgid);
@@ -467,7 +453,30 @@ void QMQTT::ClientPrivate::handlePuback(const quint8 type, const quint16 msgid)
     {
         sendPuback(PUBCOMP, msgid);
     }
-    // todo: emit published signal (type? msgid?)
+
+    // Emit published on PUBACK at QOS1
+    if (type == PUBACK)
+        emit q->published(msgid, QOS1);
+
+    // Emit published on PUBCOMP at QOS2
+    if (type == PUBCOMP)
+        emit q->published(msgid, QOS2);
+
+}
+
+void QMQTT::ClientPrivate::handlePingresp() {
+    Q_Q(Client);
+    emit q->pingresp();
+}
+
+void QMQTT::ClientPrivate::handleSuback(const QString &topic, const quint8 qos) {
+    Q_Q(Client);
+    emit q->subscribed(topic, qos);
+}
+
+void QMQTT::ClientPrivate::handleUnsuback(const QString &topic) {
+    Q_Q(Client);
+    emit q->unsubscribed(topic);
 }
 
 bool QMQTT::ClientPrivate::autoReconnect() const

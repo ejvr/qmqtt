@@ -37,9 +37,10 @@
 #include <QSslSocket>
 #include <QSslConfiguration>
 
-QMQTT::SslSocket::SslSocket(const QSslConfiguration &config, QObject *parent)
+QMQTT::SslSocket::SslSocket(const QSslConfiguration &config, bool ignoreSelfSigned, QObject* parent)
     : SocketInterface(parent)
     , _socket(new QSslSocket)
+    , _ignoreSelfSigned(ignoreSelfSigned)
 {
     _socket->setSslConfiguration(config);
     connect(_socket.data(), &QSslSocket::encrypted,    this, &SocketInterface::connected);
@@ -75,6 +76,10 @@ void QMQTT::SslSocket::connectToHost(const QHostAddress& address, quint16 port)
 void QMQTT::SslSocket::connectToHost(const QString& hostName, quint16 port)
 {
     _socket->connectToHostEncrypted(hostName, port);
+    if (!_socket->waitForEncrypted())
+    {
+        qCritical() << QStringLiteral("qmqtt SSL: ") << _socket->errorString();
+    }
 }
 
 void QMQTT::SslSocket::disconnectFromHost()
@@ -94,8 +99,17 @@ QAbstractSocket::SocketError QMQTT::SslSocket::error() const
 
 void QMQTT::SslSocket::sslErrors(const QList<QSslError> &errors)
 {
-    Q_UNUSED(errors);
-    qCritical("qmqtt: errors while connecting over SSL, %s", qPrintable(_socket->errorString()));
+    if (!_ignoreSelfSigned)
+        return;
+    foreach (QSslError error, errors)
+    {
+        if (error.error() != QSslError::SelfSignedCertificate &&
+            error.error() != QSslError::SelfSignedCertificateInChain)
+        {
+            return;
+        }
+    }
+    _socket->ignoreSslErrors();
 }
 
 #endif // QT_NO_SSL

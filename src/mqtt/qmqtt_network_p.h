@@ -50,14 +50,14 @@ namespace QMQTT {
 class SocketInterface;
 class TimerInterface;
 
-class Q_MQTT_EXPORT Network : public NetworkInterface
+class Network : public NetworkInterface
 {
     Q_OBJECT
 
 public:
     Network(QObject* parent = NULL);
 #ifndef QT_NO_SSL
-    Network(const QSslConfiguration &config, QObject* parent = NULL);
+    Network(const QSslConfiguration& config, bool ignoreSelfSigned, QObject* parent = NULL);
 #endif // QT_NO_SSL
     Network(SocketInterface* socketInterface, TimerInterface* timerInterface,
             QObject* parent = NULL);

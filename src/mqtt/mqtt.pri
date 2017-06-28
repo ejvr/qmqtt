@@ -19,8 +19,6 @@ PRIVATE_HEADERS += \
     $$PWD/qmqtt_ssl_socket_p.h \
     $$PWD/qmqtt_timer_p.h
 
-HEADERS += $$PUBLIC_HEADERS $$PRIVATE_HEADERS
-
 SOURCES += \
     $$PWD/qmqtt_client_p.cpp \
     $$PWD/qmqtt_client.cpp \

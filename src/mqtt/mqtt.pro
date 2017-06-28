@@ -9,4 +9,6 @@ HEADERS += \
 
 include(mqtt.pri)
 
+HEADERS += $$PUBLIC_HEADERS $$PRIVATE_HEADERS
+
 load(qt_module)

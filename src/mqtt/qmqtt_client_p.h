@@ -50,10 +50,12 @@ public:
     ~ClientPrivate();
 
     void init(const QHostAddress& host, const quint16 port, NetworkInterface* network = NULL);
-    void init(const QString& hostName, const quint16 port, const bool ssl, const bool ignoreSelfSigned);
 #ifndef QT_NO_SSL
-    void init(const QString& hostName, const quint16 port, const QSslConfiguration &config);
+    void init(const QString& hostName, const quint16 port, const QSslConfiguration& config,
+              const bool ignoreSelfSigned=false);
 #endif // QT_NO_SSL
+    void init(const QString& hostName, const quint16 port, const bool ssl, const bool ignoreSelfSigned);
+    void init(NetworkInterface* network);
 
     QHostAddress _host;
     QString _hostName;
@@ -97,6 +99,10 @@ public:
     void handleConnack(const quint8 ack);
     void handlePublish(const Message& message);
     void handlePuback(const quint8 type, const quint16 msgid);
+    void handleSuback(const QString& topic, const quint8 qos);
+    void handleUnsuback(const QString& topic);
+    void handlePubcomp(const Message& message);
+    void handlePingresp();
     bool autoReconnect() const;
     void setAutoReconnect(const bool autoReconnect);
     bool autoReconnectInterval() const;

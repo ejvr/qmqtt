@@ -120,18 +120,23 @@ public:
            const quint16 port = 1883,
            QObject* parent = NULL);
 
+#ifndef QT_NO_SSL
+    Client(const QString& hostName,
+           const quint16 port,
+           const QSslConfiguration& config,
+           const bool ignoreSelfSigned=false,
+           QObject* parent = NULL);
+#endif // QT_NO_SSL
+
+    // This function is provided for backward compatibility with older versions of QMQTT.
+    // If the ssl parameter is true, this function will load a private key ('cert.key') and a local
+    // certificate ('cert.crt') from the current working directory. It will also set PeerVerifyMode
+    // to None. This may not be the safest way to set up a SSL connection.
     Client(const QString& hostName,
            const quint16 port,
            const bool ssl,
            const bool ignoreSelfSigned,
            QObject* parent = NULL);
-
-#ifndef QT_NO_SSL
-    Client(const QString& hostName,
-           const quint16 port,
-           const QSslConfiguration &config,
-           QObject* parent = NULL);
-#endif // QT_NO_SSL
 
     // for testing purposes only
     Client(NetworkInterface* network,
@@ -188,14 +193,11 @@ signals:
     void disconnected();
     void error(const QMQTT::ClientError error);
 
-    // todo: should emit on server suback (or is that only at specific QoS levels?)
-    void subscribed(const QString& topic);
-    // todo: should emit on server unsuback (or is that only at specific QoS levels?)
+    void subscribed(const QString& topic, const quint8 qos);
     void unsubscribed(const QString& topic);
-    // todo: should emit on server puback (or is that only at specific QoS levels?)
-    void published(const QMQTT::Message& message);
-
+    void published(const quint16 msgid, const quint8 qos);
     void received(const QMQTT::Message& message);
+    void pingresp();
 
 protected slots:
     void onNetworkConnected();

@@ -35,9 +35,10 @@
 #include "qmqtt_ssl_socket_p.h"
 #include "qmqtt_timer_p.h"
 
-const QHostAddress DEFAULT_HOST = QHostAddress::LocalHost;
 const QString DEFAULT_HOST_NAME = QStringLiteral("localhost");
+const QHostAddress DEFAULT_HOST = QHostAddress::LocalHost;
 const quint16 DEFAULT_PORT = 1883;
+const quint16 DEFAULT_SSL_PORT = 8883;
 const bool DEFAULT_AUTORECONNECT = false;
 const int DEFAULT_AUTORECONNECT_INTERVAL_MS = 5000;
 
@@ -55,20 +56,18 @@ QMQTT::Network::Network(QObject* parent)
 }
 
 #ifndef QT_NO_SSL
-
-QMQTT::Network::Network(const QSslConfiguration &config, QObject *parent)
+QMQTT::Network::Network(const QSslConfiguration &config, bool ignoreSelfSigned, QObject *parent)
     : NetworkInterface(parent)
-    , _port(DEFAULT_PORT)
+    , _port(DEFAULT_SSL_PORT)
     , _hostName(DEFAULT_HOST_NAME)
     , _autoReconnect(DEFAULT_AUTORECONNECT)
     , _autoReconnectInterval(DEFAULT_AUTORECONNECT_INTERVAL_MS)
-    , _socket(new QMQTT::SslSocket(config))
+    , _socket(new QMQTT::SslSocket(config, ignoreSelfSigned))
     , _autoReconnectTimer(new QMQTT::Timer)
     , _readState(Header)
 {
     initialize();
 }
-
 #endif // QT_NO_SSL
 
 QMQTT::Network::Network(SocketInterface* socketInterface, TimerInterface* timerInterface,
@@ -186,11 +185,13 @@ int QMQTT::Network::autoReconnectInterval() const
 void QMQTT::Network::setAutoReconnectInterval(const int autoReconnectInterval)
 {
     _autoReconnectInterval = autoReconnectInterval;
+    _autoReconnectTimer->setInterval(_autoReconnectInterval);
 }
 
 void QMQTT::Network::onSocketReadReady()
 {
     QIODevice *ioDevice = _socket->ioDevice();
+    // Only read the available (cached) bytes, so the read will never block.
     QByteArray data = ioDevice->read(ioDevice->bytesAvailable());
     foreach(char byte, data) {
         switch (_readState) {
