@@ -2,6 +2,9 @@ TEMPLATE = app
 TARGET = qmqtt_example
 QT = core network mqtt
 
+HEADERS += \
+    example.hpp
+
 SOURCES += \
     example.cpp
 
