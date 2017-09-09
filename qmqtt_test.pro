@@ -1,5 +1,6 @@
 TARGET = qmqtt_tests
 QT = core network testlib
+QMQTT_WEBSOCKETS: QT += websockets
 
 DEFINES += QMQTT_LIBRARY_TESTS
 
