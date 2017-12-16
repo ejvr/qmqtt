@@ -16,6 +16,7 @@ Project {
             "tests/gtest/gtest/googletest/googlemock/include",
             "tests/gtest/gtest/googletest/googlemock",
         ]
+        cpp.defines: ["QMQTT_LIBRARY_TESTS", "QT_BUILD_MQTT_LIB"]
         files: [
             "src/mqtt/*.cpp",
             "src/mqtt/*.h",
