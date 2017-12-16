@@ -225,9 +225,9 @@ void QMQTT::Network::onSocketReadReady()
             if ((byte & 0x80) != 0)
                 break;
             if (_length == 0) {
+                _readState = Header;
                 Frame frame(_header, _data);
                 emit received(frame);
-                _readState = Header;
                 break;
             }
             _readState = PayLoad;
@@ -238,9 +238,9 @@ void QMQTT::Network::onSocketReadReady()
             --_length;
             if (_length > 0)
                 break;
+            _readState = Header;
             Frame frame(_header, _data);
             emit received(frame);
-            _readState = Header;
             break;
         }
     }
