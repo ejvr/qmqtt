@@ -54,10 +54,11 @@ static const quint8 LIBRARY_VERSION_MINOR = 3;
 static const quint8 LIBRARY_VERSION_REVISION = 1;
 //static const char* LIBRARY_VERSION = "0.3.1";
 
-static const quint8 PROTOCOL_VERSION_MAJOR = 3;
-static const quint8 PROTOCOL_VERSION_MINOR = 1;
-static const quint8 PROTOCOL_VERSION_REVISION = 1;
-//static const char* PROTOCOL_VERSION = "MQTT/3.1";
+enum MQTTVersion
+{
+    V3_1_0 = 3,
+    V3_1_1 = 4
+};
 
 enum ConnectionState
 {
@@ -108,15 +109,16 @@ class Q_MQTT_EXPORT Client : public QObject
     Q_PROPERTY(QString _hostName READ hostName WRITE setHostName)
     Q_PROPERTY(QString _clientId READ clientId WRITE setClientId)
     Q_PROPERTY(QString _username READ username WRITE setUsername)
-    Q_PROPERTY(QString _password READ password WRITE setPassword)
+    Q_PROPERTY(QByteArray _password READ password WRITE setPassword)
     Q_PROPERTY(quint16 _keepAlive READ keepAlive WRITE setKeepAlive)
+    Q_PROPERTY(MQTTVersion _version READ version WRITE setVersion)
     Q_PROPERTY(bool _autoReconnect READ autoReconnect WRITE setAutoReconnect)
     Q_PROPERTY(int _autoReconnectInterval READ autoReconnectInterval WRITE setAutoReconnectInterval)
     Q_PROPERTY(bool _cleanSession READ cleanSession WRITE setCleanSession)
     Q_PROPERTY(QString _willTopic READ willTopic WRITE setWillTopic)
     Q_PROPERTY(quint8 _willQos READ willQos WRITE setWillQos)
     Q_PROPERTY(bool _willRetain READ willRetain WRITE setWillRetain)
-    Q_PROPERTY(QString _willMessage READ willMessage WRITE setWillMessage)
+    Q_PROPERTY(QByteArray _willMessage READ willMessage WRITE setWillMessage)
     Q_PROPERTY(QString _connectionState READ connectionState)
 
 public:
@@ -164,7 +166,8 @@ public:
     quint16 port() const;
     QString clientId() const;
     QString username() const;
-    QString password() const;
+    QByteArray password() const;
+    QMQTT::MQTTVersion version() const;
     quint16 keepAlive() const;
     bool cleanSession() const;
     bool autoReconnect() const;
@@ -173,7 +176,7 @@ public:
     QString willTopic() const;
     quint8 willQos() const;
     bool willRetain() const;
-    QString willMessage() const;
+    QByteArray willMessage() const;
 
     bool isConnectedToHost() const;
 
@@ -183,7 +186,8 @@ public slots:
     void setPort(const quint16 port);
     void setClientId(const QString& clientId);
     void setUsername(const QString& username);
-    void setPassword(const QString& password);
+    void setPassword(const QByteArray& password);
+    void setVersion(const MQTTVersion version);
     void setKeepAlive(const quint16 keepAlive);
     void setCleanSession(const bool cleanSession);
     void setAutoReconnect(const bool value);
@@ -191,24 +195,24 @@ public slots:
     void setWillTopic(const QString& willTopic);
     void setWillQos(const quint8 willQos);
     void setWillRetain(const bool willRetain);
-    void setWillMessage(const QString& willMessage);
+    void setWillMessage(const QByteArray& willMessage);
 
     void connectToHost();
     void disconnectFromHost();
 
-    quint16 subscribe(const QString& topic, const quint8 qos);
+    void subscribe(const QString& topic, const quint8 qos = 0);
     void unsubscribe(const QString& topic);
 
-    quint16 publish(const Message& message);
+    quint16 publish(const QMQTT::Message& message);
 
 signals:
     void connected();
     void disconnected();
     void error(const QMQTT::ClientError error);
 
-    void subscribed(const QString& topic, const quint8 qos);
+    void subscribed(const QString& topic, const quint8 qos = 0);
     void unsubscribed(const QString& topic);
-    void published(const quint16 msgid, const quint8 qos);
+    void published(const QMQTT::Message& message, quint16 msgid = 0);
     void received(const QMQTT::Message& message);
     void pingresp();
 

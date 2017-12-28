@@ -72,9 +72,10 @@ public:
     QWebSocketProtocol::Version _webSocketVersion;
 #endif // QT_WEBSOCKETS_LIB
     quint16 _gmid;
+    MQTTVersion _version;
     QString _clientId;
     QString _username;
-    QString _password;
+    QByteArray _password;
     bool _cleanSession;
     quint16 _keepAlive;
     ConnectionState _connectionState;
@@ -83,8 +84,10 @@ public:
     QString _willTopic;
     quint8 _willQos;
     bool _willRetain;
-    QString _willMessage;
+    QByteArray _willMessage;
     QHash<QAbstractSocket::SocketError, ClientError> _socketErrorHash;
+    QHash<quint16, QString> _midToTopic;
+    QHash<quint16, Message> _midToMessage;
 
     Client* const q_ptr;
 
@@ -94,7 +97,7 @@ public:
     void onTimerPingReq();
     quint16 sendUnsubscribe(const QString &topic);
     quint16 sendSubscribe(const QString &topic, const quint8 qos);
-    quint16 sendPublish(const Message &msg);
+    quint16 sendPublish(const Message &message);
     void sendPuback(const quint8 type, const quint16 mid);
     void sendDisconnect();
     void disconnectFromHost();
@@ -104,7 +107,7 @@ public:
     void onNetworkDisconnected();
     quint16 publish(const Message& message);
     void puback(const quint8 type, const quint16 msgid);
-    quint16 subscribe(const QString& topic, const quint8 qos);
+    void subscribe(const QString& topic, const quint8 qos);
     void unsubscribe(const QString& topic);
     void onNetworkReceived(const QMQTT::Frame& frame);
     void handleConnack(const quint8 ack);
@@ -124,10 +127,12 @@ public:
     bool cleanSession() const;
     void setKeepAlive(const quint16 keepAlive);
     quint16 keepAlive() const;
-    void setPassword(const QString& password);
-    QString password() const;
+    void setPassword(const QByteArray& password);
+    QByteArray password() const;
     void setUsername(const QString& username);
     QString username() const;
+    void setVersion(const MQTTVersion);
+    MQTTVersion version() const;
     void setClientId(const QString& clientId);
     QString clientId() const;
     void setPort(const quint16 port);
@@ -139,11 +144,11 @@ public:
     void setWillTopic(const QString& willTopic);
     void setWillQos(const quint8 willQos);
     void setWillRetain(const bool willRetain);
-    void setWillMessage(const QString& willMessage);
+    void setWillMessage(const QByteArray& willMessage);
     QString willTopic() const;
     quint8 willQos() const;
     bool willRetain() const;
-    QString willMessage() const;
+    QByteArray willMessage() const;
     void initializeErrorHash();
     void onNetworkError(QAbstractSocket::SocketError error);
 

@@ -50,6 +50,7 @@ QMQTT::ClientPrivate::ClientPrivate(Client* qq_ptr)
     : _host(QHostAddress::LocalHost)
     , _port(1883)
     , _gmid(1)
+    , _version(MQTTVersion::V3_1_0)
     , _clientId(QUuid::createUuid().toString())
     , _cleanSession(false)
     , _keepAlive(300)
@@ -209,15 +210,19 @@ void QMQTT::ClientPrivate::sendConnect()
     if (!username().isEmpty())
     {
         flags = FLAG_USERNAME(flags, 1);
-    }
-    if (!password().isEmpty())
-    {
-        flags = FLAG_PASSWD(flags, 1);
+        flags = FLAG_PASSWD(flags, !password().isEmpty() ? 1 : 0);
     }
 
     //payload
-    frame.writeString(QStringLiteral(PROTOCOL_MAGIC));
-    frame.writeChar(PROTOCOL_VERSION_MAJOR);
+    if(_version == V3_1_1)
+    {
+        frame.writeString(QStringLiteral(PROTOCOL_MAGIC_3_1_1));
+    }
+    else
+    {
+        frame.writeString(QStringLiteral(PROTOCOL_MAGIC_3_1_0));
+    }
+    frame.writeChar(_version);
     frame.writeChar(flags);
     frame.writeInt(_keepAlive);
     frame.writeString(_clientId);
@@ -226,23 +231,23 @@ void QMQTT::ClientPrivate::sendConnect()
         frame.writeString(willTopic());
         if(!willMessage().isEmpty())
         {
-            frame.writeString(willMessage());
+            frame.writeByteArray(_willMessage);
         }
     }
     if (!_username.isEmpty())
     {
         frame.writeString(_username);
-    }
-    if (!_password.isEmpty())
-    {
-        frame.writeString(_password);
+        if (!_password.isEmpty())
+        {
+            frame.writeByteArray(_password);
+        }
     }
     _network->sendFrame(frame);
 }
 
-quint16 QMQTT::ClientPrivate::sendPublish(const Message& msg)
+quint16 QMQTT::ClientPrivate::sendPublish(const Message &message)
 {
-    Message message(msg);
+    quint16 msgid = message.id();
 
     quint8 header = PUBLISH;
     header = SETRETAIN(header, message.retain() ? 1 : 0);
@@ -251,16 +256,15 @@ quint16 QMQTT::ClientPrivate::sendPublish(const Message& msg)
     Frame frame(header);
     frame.writeString(message.topic());
     if(message.qos() > QOS0) {
-        if(message.id() == 0) {
-            message.setId(nextmid());
-        }
-        frame.writeInt(message.id());
+        if (msgid == 0)
+            msgid = nextmid();
+        frame.writeInt(msgid);
     }
     if(!message.payload().isEmpty()) {
         frame.writeRawData(message.payload());
     }
     _network->sendFrame(frame);
-    return message.id();
+    return msgid;
 }
 
 void QMQTT::ClientPrivate::sendPuback(const quint8 type, const quint16 mid)
@@ -332,7 +336,9 @@ quint16 QMQTT::ClientPrivate::publish(const Message& message)
 
     // Emit published only at QOS0
     if (message.qos() == QOS0)
-        emit q->published(message.id(), QOS0);
+        emit q->published(message, msgid);
+    else
+        _midToMessage[msgid] = message;
 
     return msgid;
 }
@@ -342,15 +348,16 @@ void QMQTT::ClientPrivate::puback(const quint8 type, const quint16 msgid)
     sendPuback(type, msgid);
 }
 
-quint16 QMQTT::ClientPrivate::subscribe(const QString& topic, const quint8 qos)
+void QMQTT::ClientPrivate::subscribe(const QString& topic, const quint8 qos)
 {
     quint16 msgid = sendSubscribe(topic, qos);
-    return msgid;
+    _midToTopic[msgid] = topic;
 }
 
 void QMQTT::ClientPrivate::unsubscribe(const QString& topic)
 {
-    sendUnsubscribe(topic);
+    quint16 msgid = sendUnsubscribe(topic);
+    _midToTopic[msgid] = topic;
 }
 
 void QMQTT::ClientPrivate::onNetworkDisconnected()
@@ -358,6 +365,8 @@ void QMQTT::ClientPrivate::onNetworkDisconnected()
     Q_Q(Client);
 
     stopKeepAlive();
+    _midToTopic.clear();
+    _midToMessage.clear();
     emit q->disconnected();
 }
 
@@ -393,13 +402,7 @@ void QMQTT::ClientPrivate::onNetworkReceived(const QMQTT::Frame& frm)
         }
         if (!ok)
             return;
-        message.setId(mid);
-        message.setTopic(topic);
-        message.setPayload(frame.data());
-        message.setQos(qos);
-        message.setRetain(retain);
-        message.setDup(dup);
-        handlePublish(message);
+        handlePublish(Message(mid, topic, frame.data(), qos, retain, dup));
         break;
     case PUBACK:
     case PUBREC:
@@ -415,13 +418,16 @@ void QMQTT::ClientPrivate::onNetworkReceived(const QMQTT::Frame& frm)
         qos = frame.readChar(&ok);
         if (!ok)
             return;
+        topic = _midToTopic.take(mid);
         handleSuback(topic, qos);
         break;
     case UNSUBACK:
+        mid = frame.readInt();
+        topic = _midToTopic.take(mid);
         handleUnsuback(topic);
         break;
     case PINGRESP:
-
+        handlePingresp();
         break;
     default:
         break;
@@ -462,15 +468,12 @@ void QMQTT::ClientPrivate::handlePuback(const quint8 type, const quint16 msgid)
     {
         sendPuback(PUBCOMP, msgid);
     }
-
-    // Emit published on PUBACK at QOS1
-    if (type == PUBACK)
-        emit q->published(msgid, QOS1);
-
-    // Emit published on PUBCOMP at QOS2
-    if (type == PUBCOMP)
-        emit q->published(msgid, QOS2);
-
+    else if (type == PUBACK || type == PUBCOMP)
+    {
+        // Emit published on PUBACK at QOS1 and on PUBCOMP at QOS2
+        const Message &message = _midToMessage.take(msgid);
+        emit q->published(message, msgid);
+    }
 }
 
 void QMQTT::ClientPrivate::handlePingresp() {
@@ -538,12 +541,12 @@ quint16 QMQTT::ClientPrivate::keepAlive() const
     return _keepAlive;
 }
 
-void QMQTT::ClientPrivate::setPassword(const QString& password)
+void QMQTT::ClientPrivate::setPassword(const QByteArray& password)
 {
     _password = password;
 }
 
-QString QMQTT::ClientPrivate::password() const
+QByteArray QMQTT::ClientPrivate::password() const
 {
     return _password;
 }
@@ -556,6 +559,16 @@ void QMQTT::ClientPrivate::setUsername(const QString& username)
 QString QMQTT::ClientPrivate::username() const
 {
     return _username;
+}
+
+void QMQTT::ClientPrivate::setVersion(const MQTTVersion version)
+{
+    _version = version;
+}
+
+QMQTT::MQTTVersion QMQTT::ClientPrivate::version() const
+{
+    return _version;
 }
 
 void QMQTT::ClientPrivate::setClientId(const QString& clientId)
@@ -635,12 +648,12 @@ void QMQTT::ClientPrivate::setWillRetain(const bool willRetain)
     _willRetain = willRetain;
 }
 
-QString QMQTT::ClientPrivate::willMessage() const
+QByteArray QMQTT::ClientPrivate::willMessage() const
 {
     return _willMessage;
 }
 
-void QMQTT::ClientPrivate::setWillMessage(const QString& willMessage)
+void QMQTT::ClientPrivate::setWillMessage(const QByteArray& willMessage)
 {
     _willMessage = willMessage;
 }

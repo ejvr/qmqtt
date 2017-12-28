@@ -116,6 +116,14 @@ quint16 Frame::readInt(bool *ok)
     return (msb << 8) | lsb;
 }
 
+QByteArray Frame::readByteArray()
+{
+    quint16 len = readInt();
+    QByteArray data = _data.left(len);
+    _data.remove(0, len);
+    return data;
+}
+
 QString Frame::readString(bool *ok)
 {
     quint16 len = readInt(ok);
@@ -138,6 +146,20 @@ void Frame::writeInt(const quint16 i)
 {
     _data.append(MSB(i));
     _data.append(LSB(i));
+}
+
+void Frame::writeByteArray(const QByteArray &data)
+{
+    if (data.size() > (int)USHRT_MAX)
+    {
+        qCritical("qmqtt: Binary data size bigger than %u bytes, truncate it!", USHRT_MAX);
+        writeInt(USHRT_MAX);
+        _data.append(data.left(USHRT_MAX));
+        return;
+    }
+
+    writeInt(data.size());
+    _data.append(data);
 }
 
 void Frame::writeString(const QString &string)

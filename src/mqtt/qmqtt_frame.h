@@ -36,7 +36,9 @@
 
 #include <QObject>
 
-#define PROTOCOL_MAGIC "MQIsdp"
+#define PROTOCOL_MAGIC_3_1_0 "MQIsdp"
+#define PROTOCOL_MAGIC_3_1_1 "MQTT"
+
 #define RANDOM_CLIENT_PREFIX "QMQTT-"
 
 #define CONNECT 0x10
@@ -54,8 +56,8 @@
 #define PINGRESP 0xD0
 #define DISCONNECT 0xE0
 
-#define LSB(A) (quint8)(A & 0x00FF)
-#define MSB(A) (quint8)((A & 0xFF00) >> 8)
+#define LSB(A) quint8(A & 0x00FF)
+#define MSB(A) quint8((A & 0xFF00) >> 8)
 
 /*
 |--------------------------------------
@@ -98,16 +100,20 @@ public:
     Frame& operator=(const Frame& other);
 
     bool operator==(const Frame& other) const;
+    inline bool operator!=(const Frame& other) const
+    { return !operator==(other); }
 
     quint8 header() const;
     QByteArray data() const;
 
     quint16 readInt(bool *ok = 0);
     quint8 readChar(bool *ok = 0);
+    QByteArray readByteArray();
     QString readString(bool *ok = 0);
 
     void writeInt(const quint16 i);
     void writeChar(const quint8 c);
+    void writeByteArray(const QByteArray &data);
     void writeString(const QString &string);
     void writeRawData(const QByteArray &data);
 

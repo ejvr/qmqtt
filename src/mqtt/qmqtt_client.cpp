@@ -157,13 +157,25 @@ void QMQTT::Client::setUsername(const QString& username)
     d->setUsername(username);
 }
 
-QString QMQTT::Client::password() const
+QMQTT::MQTTVersion QMQTT::Client::version() const
+{
+    Q_D(const Client);
+    return d->version();
+}
+
+void QMQTT::Client::setVersion(const QMQTT::MQTTVersion version)
+{
+    Q_D(Client);
+    d->setVersion(version);
+}
+
+QByteArray QMQTT::Client::password() const
 {
     Q_D(const Client);
     return d->password();
 }
 
-void QMQTT::Client::setPassword(const QString& password)
+void QMQTT::Client::setPassword(const QByteArray &password)
 {
     Q_D(Client);
     d->setPassword(password);
@@ -253,13 +265,13 @@ void QMQTT::Client::setWillRetain(const bool willRetain)
     d->setWillRetain(willRetain);
 }
 
-QString QMQTT::Client::willMessage() const
+QByteArray QMQTT::Client::willMessage() const
 {
     Q_D(const Client);
     return d->willMessage();
 }
 
-void QMQTT::Client::setWillMessage(const QString& willMessage)
+void QMQTT::Client::setWillMessage(const QByteArray &willMessage)
 {
     Q_D(Client);
     d->setWillMessage(willMessage);
@@ -295,10 +307,10 @@ quint16 QMQTT::Client::publish(const Message& message)
     return d->publish(message);
 }
 
-quint16 QMQTT::Client::subscribe(const QString& topic, const quint8 qos)
+void QMQTT::Client::subscribe(const QString& topic, const quint8 qos)
 {
     Q_D(Client);
-    return d->subscribe(topic, qos);
+    d->subscribe(topic, qos);
 }
 
 void QMQTT::Client::unsubscribe(const QString& topic)
