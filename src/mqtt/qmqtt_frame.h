@@ -108,7 +108,7 @@ public:
 
     quint16 readInt(bool *ok = 0);
     quint8 readChar(bool *ok = 0);
-    QByteArray readByteArray();
+    QByteArray readByteArray(bool *ok = 0);
     QString readString(bool *ok = 0);
 
     void writeInt(const quint16 i);

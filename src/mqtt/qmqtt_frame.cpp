@@ -116,11 +116,21 @@ quint16 Frame::readInt(bool *ok)
     return (msb << 8) | lsb;
 }
 
-QByteArray Frame::readByteArray()
+QByteArray Frame::readByteArray(bool *ok)
 {
-    quint16 len = readInt();
+    quint16 len = readInt(ok);
+    if (ok != 0) {
+        if (!*ok)
+            return QByteArray();
+        if (_data.size() < len) {
+            *ok = false;
+            return QByteArray();
+        }
+    }
     QByteArray data = _data.left(len);
     _data.remove(0, len);
+    if (ok != 0)
+        *ok = true;
     return data;
 }
 
