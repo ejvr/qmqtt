@@ -36,6 +36,7 @@
 
 #include "qmqtt_socketinterface.h"
 #include "qmqtt_websocketiodevice_p.h"
+#include <QSslConfiguration>
 #include <QWebSocket>
 
 namespace QMQTT

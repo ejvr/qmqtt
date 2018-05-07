@@ -36,8 +36,6 @@
 #include "qmqtt_timer_p.h"
 #include "qmqtt_websocket_p.h"
 
-const QString DEFAULT_HOST_NAME = QStringLiteral("localhost");
-const QHostAddress DEFAULT_HOST = QHostAddress::LocalHost;
 const quint16 DEFAULT_PORT = 1883;
 const quint16 DEFAULT_SSL_PORT = 8883;
 const bool DEFAULT_AUTORECONNECT = false;
@@ -46,7 +44,6 @@ const int DEFAULT_AUTORECONNECT_INTERVAL_MS = 5000;
 QMQTT::Network::Network(QObject* parent)
     : NetworkInterface(parent)
     , _port(DEFAULT_PORT)
-    , _host(DEFAULT_HOST)
     , _autoReconnect(DEFAULT_AUTORECONNECT)
     , _autoReconnectInterval(DEFAULT_AUTORECONNECT_INTERVAL_MS)
     , _socket(new QMQTT::Socket)
@@ -60,7 +57,6 @@ QMQTT::Network::Network(QObject* parent)
 QMQTT::Network::Network(const QSslConfiguration &config, bool ignoreSelfSigned, QObject *parent)
     : NetworkInterface(parent)
     , _port(DEFAULT_SSL_PORT)
-    , _hostName(DEFAULT_HOST_NAME)
     , _autoReconnect(DEFAULT_AUTORECONNECT)
     , _autoReconnectInterval(DEFAULT_AUTORECONNECT_INTERVAL_MS)
     , _socket(new QMQTT::SslSocket(config, ignoreSelfSigned))
@@ -79,7 +75,6 @@ QMQTT::Network::Network(const QString& origin,
                         QObject* parent)
     : NetworkInterface(parent)
     , _port(DEFAULT_SSL_PORT)
-    , _hostName(DEFAULT_HOST_NAME)
     , _autoReconnect(DEFAULT_AUTORECONNECT)
     , _autoReconnectInterval(DEFAULT_AUTORECONNECT_INTERVAL_MS)
     , _socket(new QMQTT::WebSocket(origin, version, sslConfig, ignoreSelfSigned))
@@ -94,7 +89,6 @@ QMQTT::Network::Network(SocketInterface* socketInterface, TimerInterface* timerI
                         QObject* parent)
     : NetworkInterface(parent)
     , _port(DEFAULT_PORT)
-    , _host(DEFAULT_HOST)
     , _autoReconnect(DEFAULT_AUTORECONNECT)
     , _autoReconnectInterval(DEFAULT_AUTORECONNECT_INTERVAL_MS)
     , _socket(socketInterface)
@@ -133,6 +127,8 @@ bool QMQTT::Network::isConnectedToHost() const
 
 void QMQTT::Network::connectToHost(const QHostAddress& host, const quint16 port)
 {
+    // Reset the hostname, because if it is not empty connectToHost() will use it instead of _host.
+    _hostName.clear();
     _host = host;
     _hostName.clear();
     _port = port;
