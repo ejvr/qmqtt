@@ -84,6 +84,7 @@ public:
     ConnectionState _connectionState;
     QScopedPointer<NetworkInterface> _network;
     QTimer _timer;
+    QTimer _pingResponseTimer;
     QString _willTopic;
     quint8 _willQos;
     bool _willRetain;
@@ -97,6 +98,7 @@ public:
     void connectToHost();
     void sendConnect();
     void onTimerPingReq();
+    void onPingTimeout();
     quint16 sendUnsubscribe(const QString &topic);
     quint16 sendSubscribe(const QString &topic, const quint8 qos);
     quint16 sendPublish(const Message &message);

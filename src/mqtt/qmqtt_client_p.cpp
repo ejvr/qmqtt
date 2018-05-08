@@ -136,8 +136,10 @@ void QMQTT::ClientPrivate::init(NetworkInterface* network)
     Q_Q(Client);
 
     _network.reset(network);
+    _pingResponseTimer.setSingleShot(true);
 
     QObject::connect(&_timer, &QTimer::timeout, q, &Client::onTimerPingReq);
+    QObject::connect(&_pingResponseTimer, &QTimer::timeout, q, &Client::onPingTimeout);
     QObject::connect(_network.data(), &Network::connected,
                      q, &Client::onNetworkConnected);
     QObject::connect(_network.data(), &Network::disconnected,
@@ -274,6 +276,15 @@ void QMQTT::ClientPrivate::onTimerPingReq()
 {
     Frame frame(PINGREQ);
     _network->sendFrame(frame);
+    _pingResponseTimer.start();
+}
+
+void QMQTT::ClientPrivate::onPingTimeout()
+{
+    Q_Q(Client);
+    _pingResponseTimer.stop();
+    disconnectFromHost();
+    emit q->pingTimeout();
 }
 
 void QMQTT::ClientPrivate::disconnectFromHost()
@@ -292,11 +303,15 @@ void QMQTT::ClientPrivate::startKeepAlive()
 {
     _timer.setInterval(_keepAlive*1000);
     _timer.start();
+    // The MQTT specification does not mention a timeout value in this case, so we use 10% of the
+    // keep alive interval.
+    _pingResponseTimer.setInterval(_keepAlive*100);
 }
 
 void QMQTT::ClientPrivate::stopKeepAlive()
 {
     _timer.stop();
+    _pingResponseTimer.stop();
 }
 
 quint16 QMQTT::ClientPrivate::nextmid()
@@ -475,6 +490,9 @@ void QMQTT::ClientPrivate::handlePuback(const quint8 type, const quint16 msgid)
 }
 
 void QMQTT::ClientPrivate::handlePingresp() {
+    // Stop the ping response timer to prevent disconnection. It will be restarted when the next
+    // ping request has been sent.
+    _pingResponseTimer.stop();
     Q_Q(Client);
     emit q->pingresp();
 }

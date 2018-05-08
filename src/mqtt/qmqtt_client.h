@@ -227,12 +227,14 @@ signals:
     void published(const QMQTT::Message& message, quint16 msgid = 0);
     void received(const QMQTT::Message& message);
     void pingresp();
+    void pingTimeout();
 
 protected slots:
     void onNetworkConnected();
     void onNetworkDisconnected();
     void onNetworkReceived(const QMQTT::Frame& frame);
     void onTimerPingReq();
+    void onPingTimeout();
     void onNetworkError(QAbstractSocket::SocketError error);
 
 protected:
