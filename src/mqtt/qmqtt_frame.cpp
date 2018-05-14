@@ -194,7 +194,7 @@ void Frame::writeRawData(const QByteArray &data)
     _data.append(data);
 }
 
-void Frame::write(QDataStream &stream)
+void Frame::write(QDataStream &stream) const
 {
     QByteArray lenbuf;
 
@@ -220,7 +220,7 @@ void Frame::write(QDataStream &stream)
     }
 }
 
-bool Frame::encodeLength(QByteArray &lenbuf, int length)
+bool Frame::encodeLength(QByteArray &lenbuf, int length) const
 {
     lenbuf.clear();
     quint8 d;

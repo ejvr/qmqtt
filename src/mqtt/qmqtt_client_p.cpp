@@ -298,7 +298,7 @@ void QMQTT::ClientPrivate::sendDisconnect()
     sendFrame(frame);
 }
 
-void QMQTT::ClientPrivate::sendFrame(Frame &frame)
+void QMQTT::ClientPrivate::sendFrame(const Frame &frame)
 {
     _network->sendFrame(frame);
     _timer.start();

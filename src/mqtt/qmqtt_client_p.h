@@ -103,7 +103,7 @@ public:
     quint16 sendPublish(const Message &message);
     void sendPuback(const quint8 type, const quint16 mid);
     void sendDisconnect();
-    void sendFrame(Frame &frame);
+    void sendFrame(const Frame &frame);
     void disconnectFromHost();
     void stopKeepAlive();
     void onNetworkConnected();
