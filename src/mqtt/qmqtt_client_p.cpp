@@ -282,9 +282,8 @@ void QMQTT::ClientPrivate::onTimerPingReq()
 void QMQTT::ClientPrivate::onPingTimeout()
 {
     Q_Q(Client);
-    _pingResponseTimer.stop();
+    emit q->error(MqttNoPingResponse);
     disconnectFromHost();
-    emit q->pingTimeout();
 }
 
 void QMQTT::ClientPrivate::disconnectFromHost()
@@ -305,7 +304,7 @@ void QMQTT::ClientPrivate::startKeepAlive()
     _timer.start();
     // The MQTT specification does not mention a timeout value in this case, so we use 10% of the
     // keep alive interval.
-    _pingResponseTimer.setInterval(_keepAlive*100);
+    _pingResponseTimer.setInterval(qMin(10000, _keepAlive*100));
 }
 
 void QMQTT::ClientPrivate::stopKeepAlive()
