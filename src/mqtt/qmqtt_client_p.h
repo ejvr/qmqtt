@@ -80,7 +80,6 @@ public:
     QString _username;
     QByteArray _password;
     bool _cleanSession;
-    quint16 _keepAlive;
     ConnectionState _connectionState;
     QScopedPointer<NetworkInterface> _network;
     QTimer _timer;
@@ -104,8 +103,8 @@ public:
     quint16 sendPublish(const Message &message);
     void sendPuback(const quint8 type, const quint16 mid);
     void sendDisconnect();
+    void sendFrame(Frame &frame);
     void disconnectFromHost();
-    void startKeepAlive();
     void stopKeepAlive();
     void onNetworkConnected();
     void onNetworkDisconnected();
