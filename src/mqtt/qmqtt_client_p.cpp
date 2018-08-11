@@ -206,10 +206,9 @@ void QMQTT::ClientPrivate::sendConnect()
     if(!willTopic().isEmpty())
     {
         frame.writeString(willTopic());
-        if(!willMessage().isEmpty())
-        {
-            frame.writeByteArray(_willMessage);
-        }
+        // According to the specs (http://docs.oasis-open.org/mqtt/mqtt/v3.1.1/os/mqtt-v3.1.1-os.html#_Toc398718031)
+        // the will message gets always sent together with the topic, also when it is empty which is perfectly valid.
+        frame.writeByteArray(_willMessage); 
     }
     if (!_username.isEmpty())
     {
@@ -485,7 +484,8 @@ void QMQTT::ClientPrivate::handlePuback(const quint8 type, const quint16 msgid)
     }
 }
 
-void QMQTT::ClientPrivate::handlePingresp() {
+void QMQTT::ClientPrivate::handlePingresp()
+{
     // Stop the ping response timer to prevent disconnection. It will be restarted when the next
     // ping request has been sent.
     _pingResponseTimer.stop();
@@ -493,7 +493,8 @@ void QMQTT::ClientPrivate::handlePingresp() {
     emit q->pingresp();
 }
 
-void QMQTT::ClientPrivate::handleSuback(const QString &topic, const quint8 qos) {
+void QMQTT::ClientPrivate::handleSuback(const QString &topic, const quint8 qos)
+{
     Q_Q(Client);
     emit q->subscribed(topic, qos);
 }
@@ -513,7 +514,7 @@ void QMQTT::ClientPrivate::setAutoReconnect(const bool autoReconnect)
     _network->setAutoReconnect(autoReconnect);
 }
 
-bool QMQTT::ClientPrivate::autoReconnectInterval() const
+int QMQTT::ClientPrivate::autoReconnectInterval() const
 {
     return _network->autoReconnectInterval();
 }
