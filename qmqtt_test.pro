@@ -4,7 +4,7 @@ QMQTT_WEBSOCKETS: QT += websockets
 
 DEFINES += QMQTT_LIBRARY_TESTS QT_BUILD_MQTT_LIB
 
-include(src/mqtt/mqtt.pri)
+include(src/mqtt/qmqtt.pri)
 include(tests/gtest/gtest/gtest.pri)
 
 SOURCES += \
