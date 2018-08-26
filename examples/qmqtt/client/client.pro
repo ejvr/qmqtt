@@ -1,6 +1,6 @@
 TEMPLATE = app
 TARGET = qmqtt_example
-QT = core network mqtt
+QT = core network qmqtt
 
 HEADERS += \
     example.hpp
@@ -8,5 +8,5 @@ HEADERS += \
 SOURCES += \
     example.cpp
 
-target.path = $$[QT_INSTALL_EXAMPLES]/mqtt/client
+target.path = $$[QT_INSTALL_EXAMPLES]/qmqtt/client
 INSTALLS += target
