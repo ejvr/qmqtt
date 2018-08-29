@@ -11,7 +11,7 @@ file(GLOB_RECURSE src *.cpp)
 file(GLOB_RECURSE headers *.h)
 
 # This define force export of library symbols (dll_export)
-add_definitions(-DQT_BUILD_MQTT_LIB)
+add_definitions(-DQT_BUILD_QMQTT_LIB)
 
 add_library(${libname} SHARED ${src} ${headers})
 target_include_directories(${libname} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
