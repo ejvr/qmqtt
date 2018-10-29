@@ -32,9 +32,13 @@
 #ifndef QMQTT_FRAME_H
 #define QMQTT_FRAME_H
 
-#include <qmqtt_global.h>
+#include "qmqtt_global.h"
 
-#include <QObject>
+#include <QMetaType>
+#include <QByteArray>
+#include <QString>
+
+QT_FORWARD_DECLARE_CLASS(QDataStream)
 
 #define PROTOCOL_MAGIC_3_1_0 "MQIsdp"
 #define PROTOCOL_MAGIC_3_1_1 "MQTT"
@@ -128,6 +132,6 @@ private:
 
 } // namespace QMQTT
 
-Q_DECLARE_METATYPE(QMQTT::Frame);
+Q_DECLARE_METATYPE(QMQTT::Frame)
 
 #endif // QMQTT_FRAME_H

@@ -33,11 +33,13 @@
 #ifndef QMQTT_ROUTESUBSCRIPTION_H
 #define QMQTT_ROUTESUBSCRIPTION_H
 
-#include <qmqtt_global.h>
+#include "qmqtt_global.h"
 
 #include <QObject>
 #include <QPointer>
+#include <QString>
 #include <QRegularExpression>
+#include <QStringList>
 
 namespace QMQTT {
 
@@ -62,6 +64,7 @@ private slots:
 
 private:
     friend class Router;
+
     explicit RouteSubscription(Router *parent = 0);
     void setRoute(const QString &route);
 
