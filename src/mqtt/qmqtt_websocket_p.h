@@ -36,14 +36,24 @@
 
 #include "qmqtt_socketinterface.h"
 #include "qmqtt_websocketiodevice_p.h"
-#include <QSslConfiguration>
+
+#include <QObject>
 #include <QWebSocket>
+#include <QHostAddress>
+#include <QString>
+#include <QList>
+#include <QAbstractSocket>
+
+QT_FORWARD_DECLARE_CLASS(QIODevice)
+QT_FORWARD_DECLARE_CLASS(QSslConfiguration)
+QT_FORWARD_DECLARE_CLASS(QSslError)
 
 namespace QMQTT
 {
 
 class WebSocket : public SocketInterface
 {
+    Q_OBJECT
 public:
     WebSocket(const QString& origin,
               QWebSocketProtocol::Version version,
