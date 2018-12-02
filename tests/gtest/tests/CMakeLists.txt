@@ -1,27 +1,34 @@
-set(appname unittests)
+set(target_name unittests)
 
 # Find the required QT libraries
-find_package(Qt5 COMPONENTS Core Network Test REQUIRED)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
+find_package(Qt5 REQUIRED COMPONENTS Core Network Test)
+
+enable_testing()
+
 set(CMAKE_AUTOMOC ON)
 
-set(src_dir "${CMAKE_CURRENT_SOURCE_DIR}/../../../src/mqtt")
+set(src
+    clienttest.cpp
+    customprinter.cpp
+    frametest.cpp
+    main.cpp
+    messagetest.cpp
+    networktest.cpp
+    sockettest.cpp
+    tcpserver.cpp)
 
-file(GLOB unittest_src RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.h *.cpp)
-list(REMOVE_ITEM unittest_src routedmessagetests.cpp routertests.cpp routesubscriptiontests.cpp)
+set(headers
+    customprinter.h
+    iodevicemock.h
+    networkmock.h
+    socketmock.h
+    tcpserver.h
+    timermock.h)
 
-file(GLOB src RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
-    "${src_dir}/*.cpp"
-    "${src_dir}/*.h")
+add_executable(${target_name} ${src} ${headers})
 
-add_executable(${appname} ${unittest_src} ${src})
+target_compile_definitions(${target_name} PRIVATE -DQMQTT_LIBRARY_TESTS)
 
-if (BUILD_SHARED_LIBS)
-    target_compile_definitions(${appname} PRIVATE -DGTEST_LINKED_AS_SHARED_LIBRARY=1)
-endif (BUILD_SHARED_LIBS)
+target_link_libraries(${target_name} PRIVATE gtest gmock qmqtt_static Qt5::Test)
 
-# This define force export of library symbols (dll_export)
-target_compile_definitions(${appname} PRIVATE -DQMQTT_LIBRARY_TESTS -DQT_BUILD_MQTT_LIB)
-
-target_include_directories(${appname} PRIVATE ${src_dir})
-target_link_libraries(${appname} gtest gmock Qt5::Core Qt5::Network Qt5::Test)
+add_test(NAME run_tests COMMAND unittests)
