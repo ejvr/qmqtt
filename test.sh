@@ -1,31 +1,26 @@
 #!/bin/bash
 
-BASE_DIR=$PWD
-
-BUILD_DIR=.tmp/test/ssl
-mkdir -p $BUILD_DIR
-cd $BUILD_DIR
-qmake CXX=$CXX $BASE_DIR/qmqtt_test.pro && make CXX=$CXX && ./qmqtt_tests
+ctest --verbose --build-and-test . build-default --build-generator "Unix Makefiles"
 if [[ $? -ne 0 ]] ; then
     exit 1
 fi
 
-cd  $BASE_DIR
-
-BUILD_DIR=.tmp/test/no_ssl
-mkdir -p $BUILD_DIR
-cd $BUILD_DIR
-qmake CXX=$CXX DEFINES+=QT_NO_SSL $BASE_DIR/qmqtt_test.pro && make CXX=$CXX && ./qmqtt_tests
+ctest --verbose --build-and-test . build-no-sll --build-generator "Unix Makefiles" --build-options -DQMQTT_SUPPORT_SSL=OFF
 if [[ $? -ne 0 ]] ; then
     exit 1
 fi
 
-cd  $BASE_DIR
+ctest --verbose --build-and-test . build-websockets --build-generator "Unix Makefiles" --build-options -DQMQTT_SUPPORT_WEBSOCKETS=ON
+if [[ $? -ne 0 ]] ; then
+    exit 1
+fi
 
-BUILD_DIR=.tmp/test/websockets
-mkdir -p $BUILD_DIR
-cd $BUILD_DIR
-qmake CXX=$CXX CONFIG+=QMQTT_WEBSOCKETS $BASE_DIR/qmqtt_test.pro && make CXX=$CXX && ./qmqtt_tests
+ctest --verbose --build-and-test . build-example --build-generator "Unix Makefiles" --build-options -DQMQTT_BUILD_EXAMPLE=ON
+if [[ $? -ne 0 ]] ; then
+    exit 1
+fi
+
+ctest --verbose --build-and-test . build-test --build-generator "Unix Makefiles" --build-options -DQMQTT_BUILD_TESTS=ON --test-command ctest -V
 if [[ $? -ne 0 ]] ; then
     exit 1
 fi

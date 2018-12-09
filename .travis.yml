@@ -1,18 +1,19 @@
+dist: xenial
+
 language: cpp
 compiler:
  - gcc
 
 before_install:
  - sudo apt-add-repository -y ppa:ubuntu-toolchain-r/test
- - sudo apt-add-repository -y ppa:beineri/opt-qt571-trusty
+ - sudo apt-add-repository -y ppa:beineri/opt-qt571-xenial
  - sudo apt-get update -qq
- - sudo apt-get install -qq qt57base qt57tools qt57websockets g++-5
+ - sudo apt-get install -qq qt57base qt57tools qt57websockets g++-5 cmake
  - source /opt/qt57/bin/qt57-env.sh
- - export CXX="g++-5"
- - export CC="gcc-5"
 
 script:
- - qmake --version
- - $CXX --version
- - ./build.sh
- - ./test.sh
+ - ctest --verbose --build-and-test . build-default --build-generator "Unix Makefiles"
+ - ctest --verbose --build-and-test . build-no-sll --build-generator "Unix Makefiles" --build-options -DQMQTT_SUPPORT_SSL=OFF
+ - ctest --verbose --build-and-test . build-websockets --build-generator "Unix Makefiles" --build-options -DQMQTT_SUPPORT_WEBSOCKETS=ON
+ - ctest --verbose --build-and-test . build-example --build-generator "Unix Makefiles" --build-options -DQMQTT_BUILD_EXAMPLE=ON
+ - ctest --verbose --build-and-test . build-test --build-generator "Unix Makefiles" --build-options -DQMQTT_BUILD_TESTS=ON --test-command ctest -V
