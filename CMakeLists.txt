@@ -4,15 +4,11 @@ project(qmqtt VERSION 0.1 LANGUAGES CXX)
 
 include(CPack)
 include(CTest)
-include(GNUInstallDirs)
 
-option(QMQTT_SUPPORT_SSL "Add support for SSL sockets" ON)
-option(QMQTT_SUPPORT_WEBSOCKETS "Add support for websockets" OFF)
-option(QMQTT_BUILD_TESTS "Build unit tests" OFF)
 option(QMQTT_BUILD_EXAMPLE "Build example" OFF)
 
 add_subdirectory(src)
-if (QMQTT_BUILD_TESTS)
+if (BUILD_TESTING)
     add_subdirectory(tests)
 endif()
 if (QMQTT_BUILD_EXAMPLE)

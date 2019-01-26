@@ -20,7 +20,7 @@ if [[ $? -ne 0 ]] ; then
     exit 1
 fi
 
-ctest --verbose --build-and-test . build-test --build-generator "Unix Makefiles" --build-options -DQMQTT_BUILD_TESTS=ON --test-command ctest -V
+ctest --verbose --build-and-test . build-test --build-generator "Unix Makefiles" --build-options -DBUILD_TESTING=ON --test-command ctest -V
 if [[ $? -ne 0 ]] ; then
     exit 1
 fi

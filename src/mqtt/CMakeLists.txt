@@ -1,5 +1,10 @@
 set(target_name qmqtt)
 
+include(GNUInstallDirs)
+
+option(QMQTT_SUPPORT_SSL "Add support for SSL sockets" ON)
+option(QMQTT_SUPPORT_WEBSOCKETS "Add support for websockets" OFF)
+
 # Find the required QT libraries
 find_package(Qt5 REQUIRED COMPONENTS Core Network)
 
@@ -62,7 +67,7 @@ if (QMQTT_SUPPORT_WEBSOCKETS)
     target_link_libraries(${target_name} PUBLIC Qt5::WebSockets)
 endif()
 
-if (!QMQTT_SUPPORT_SSL)
+if (NOT QMQTT_SUPPORT_SSL)
     target_compile_definitions(${target_name} PUBLIC -DQT_NO_SSL)
 endif()
 
@@ -77,7 +82,7 @@ install(TARGETS ${target_name}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-if (QMQTT_BUILD_TESTS)
+if (BUILD_TESTING)
     set(static_target_name ${target_name}_static)
 
     add_library(${static_target_name} STATIC ${src} ${public_headers} ${private_headers})
@@ -91,7 +96,7 @@ if (QMQTT_BUILD_TESTS)
         target_link_libraries(${static_target_name} PUBLIC Qt5::WebSockets)
     endif()
 
-    if (!QMQTT_SUPPORT_SSL)
+    if (NOT QMQTT_SUPPORT_SSL)
         target_compile_definitions(${static_target_name} PUBLIC -DQT_NO_SSL)
     endif()
 endif()

@@ -1,4 +1,4 @@
-set(target_name unittests)
+set(target_name qmqtt_tests)
 
 # Find the required QT libraries
 find_package(Qt5 REQUIRED COMPONENTS Core Network Test)
@@ -31,4 +31,4 @@ target_compile_definitions(${target_name} PRIVATE -DQMQTT_LIBRARY_TESTS)
 
 target_link_libraries(${target_name} PRIVATE gtest gmock qmqtt_static Qt5::Test)
 
-add_test(NAME run_tests COMMAND unittests)
+add_test(NAME ${target_name} COMMAND ${target_name})
