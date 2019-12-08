@@ -30,14 +30,62 @@
  *
  */
 #include <QCoreApplication>
-#include "example.hpp"
+#include <QDebug>
+#include <qmqtt.h>
+#include <QSslConfiguration>
+#include <QSslError>
+#include <QTimer>
+
+const QHostAddress EXAMPLE_HOST = QHostAddress::LocalHost;
+const quint16 EXAMPLE_PORT = 1883;
+const QString EXAMPLE_TOPIC = "qmqtt/exampletopic";
 
 int main(int argc, char** argv)
 {
     QCoreApplication app(argc, argv);
-    Subscriber subscriber;
-    subscriber.connectToHost();
-    Publisher publisher;
+
+    QMQTT::Client publisher(QHostAddress::LocalHost, 1883);
+    // QSslConfiguration sslConfig = QSslConfiguration::defaultConfiguration();
+    // QMQTT::Client publisher("localhost", 8883, sslConfig);
+    // QMQTT::Client publisher("ws://localhost:9001", "origin", QWebSocketProtocol::VersionLatest);
+    QTimer timer;
+    int number = 0;
+    QObject::connect(&publisher, &QMQTT::Client::connected, [&] {
+        timer.start(1000);
+    });
+    QObject::connect(&timer, &QTimer::timeout, [&] {
+        QMQTT::Message message(number, EXAMPLE_TOPIC,
+                               QString("Number is %1").arg(number).toUtf8());
+        qDebug() << "Published:" << message.payload();
+        publisher.publish(message);
+        number++;
+        if(number >= 10)
+        {
+            timer.stop();
+            publisher.disconnectFromHost();
+        }
+    });
+    QObject::connect(&publisher, &QMQTT::Client::disconnected, [&] {
+        app.quit();
+    });
+    // QObject::connect(&publisher, &QMQTT::Client::sslErrors, [&](const QList<QSslError> &errors) {
+    //     for (QSslError e : errors)
+    //     {
+    //         auto err = e.error();
+    //         qDebug() << e;
+    //     }
+    //     publisher.ignoreSslErrors();
+    // });
     publisher.connectToHost();
+
+    QMQTT::Client subscriber(QHostAddress::LocalHost, 1883);
+    QObject::connect(&subscriber, &QMQTT::Client::connected, [&] {
+        subscriber.subscribe(EXAMPLE_TOPIC, 0);
+    });
+    QObject::connect(&subscriber, &QMQTT::Client::received, [&](const QMQTT::Message &message) {
+        qDebug() << "Received:" << message.payload();
+    });
+    subscriber.connectToHost();
+
     return app.exec();
 }

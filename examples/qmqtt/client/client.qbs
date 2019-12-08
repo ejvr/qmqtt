@@ -5,7 +5,7 @@ QtApplication {
     targetName: "qmqtt_example"
 
     files: [
-        "example.cpp", "example.hpp"
+        "example.cpp"
     ]
 
     Depends {
