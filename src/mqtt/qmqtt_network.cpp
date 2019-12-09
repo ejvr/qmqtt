@@ -57,7 +57,7 @@ QMQTT::Network::Network(QObject* parent)
 }
 
 #ifndef QT_NO_SSL
-QMQTT::Network::Network(const QSslConfiguration &config, QObject *parent)
+QMQTT::Network::Network(const QSslConfiguration& config, QObject *parent)
     : NetworkInterface(parent)
     , _port(DEFAULT_SSL_PORT)
     , _autoReconnect(DEFAULT_AUTORECONNECT)
@@ -273,7 +273,7 @@ void QMQTT::Network::onDisconnected()
 }
 
 #ifndef QT_NO_SSL
-void QMQTT::Network::ignoreSslErrors(const QList<QSslError> &errors)
+void QMQTT::Network::ignoreSslErrors(const QList<QSslError>& errors)
 {
     _socket->ignoreSslErrors(errors);
 }
@@ -281,5 +281,15 @@ void QMQTT::Network::ignoreSslErrors(const QList<QSslError> &errors)
 void QMQTT::Network::ignoreSslErrors()
 {
     _socket->ignoreSslErrors();
+}
+
+QSslConfiguration QMQTT::Network::sslConfiguration() const
+{
+    return _socket->sslConfiguration();
+}
+
+void QMQTT::Network::setSslConfiguration(const QSslConfiguration& config)
+{
+    _socket->setSslConfiguration(config);
 }
 #endif // QT_NO_SSL

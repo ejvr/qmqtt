@@ -38,7 +38,7 @@
 #include <QSslSocket>
 #include <QSslError>
 
-QMQTT::SslSocket::SslSocket(const QSslConfiguration &config, QObject* parent)
+QMQTT::SslSocket::SslSocket(const QSslConfiguration& config, QObject* parent)
     : SocketInterface(parent)
     , _socket(new QSslSocket(this))
 {
@@ -97,6 +97,16 @@ void QMQTT::SslSocket::ignoreSslErrors(const QList<QSslError>& errors)
 void QMQTT::SslSocket::ignoreSslErrors()
 {
     _socket->ignoreSslErrors();
+}
+
+QSslConfiguration QMQTT::SslSocket::sslConfiguration() const
+{
+    return _socket->sslConfiguration();
+}
+
+void QMQTT::SslSocket::setSslConfiguration(const QSslConfiguration& config)
+{
+    _socket->setSslConfiguration(config);
 }
 
 #endif // QT_NO_SSL

@@ -85,7 +85,9 @@ public:
     int autoReconnectInterval() const;
     void setAutoReconnectInterval(const int autoReconnectInterval);
 #ifndef QT_NO_SSL
-    void ignoreSslErrors(const QList<QSslError> &errors);
+    void ignoreSslErrors(const QList<QSslError>& errors);
+    QSslConfiguration sslConfiguration() const;
+    void setSslConfiguration(const QSslConfiguration& config);
 #endif // QT_NO_SSL
 
 public slots:

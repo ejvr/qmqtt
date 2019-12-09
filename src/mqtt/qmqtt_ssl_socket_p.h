@@ -54,7 +54,7 @@ class SslSocket : public SocketInterface
 {
     Q_OBJECT
 public:
-    explicit SslSocket(const QSslConfiguration &config, QObject* parent = NULL);
+    explicit SslSocket(const QSslConfiguration& config, QObject* parent = NULL);
     virtual ~SslSocket();
 
     virtual QIODevice *ioDevice();
@@ -65,6 +65,8 @@ public:
     QAbstractSocket::SocketError error() const;
     void ignoreSslErrors(const QList<QSslError>& errors);
     void ignoreSslErrors();
+    QSslConfiguration sslConfiguration() const;
+    void setSslConfiguration(const QSslConfiguration& config);
 
 protected:
     QScopedPointer<QSslSocket> _socket;
