@@ -1,0 +1,74 @@
+name: CMake
+
+on: [push]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    # The CMake configure and build commands are platform agnostic and should work equally
+    # well on Windows or Mac.  You can convert this to a matrix build if you need
+    # cross-platform coverage.
+    # See: https://docs.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow#configuring-a-build-matrix
+    runs-on: ubuntu-latest 
+
+    # continue if a job fails
+    continue-on-error: true
+
+    strategy:
+      matrix:
+        qtversion: ['5.11.3', '5.15.1']
+        ssl: ['ON', 'OFF']
+        websockets: ['ON', 'OFF']
+        test: ['ON']
+        # QT 5.3 does not support websockets, and can't compile the unittests
+        include:
+        - qtversion: '5.3'
+          ssl: 'ON'
+          websockets: 'OFF'
+          test: 'OFF'
+        - qtversion: '5.3'
+          ssl: 'OFF'
+          websockets: 'OFF'
+          test: 'OFF'
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v2
+      with:
+        version: ${{matrix.qtversion}}
+
+    - name: Create Build Environment
+      # Some projects don't allow in-source building, so create a separate build directory
+      # We'll use this as our working directory for all subsequent commands
+      run: cmake -E make_directory ${{runner.workspace}}/build
+
+    - name: Configure CMake
+      # Use a bash shell so we can use the same syntax for environment variable
+      # access regardless of the host operating system
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      # Note the current convention is to use the -S and -B options here to specify source
+      # and build directories, but this is only available with CMake 3.13 and higher.
+      # The CMake binaries on the Github Actions machines are (as of this writing) 3.12
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DQMQTT_SUPPORT_SSL=${{matrix.ssl}} -DQMQTT_SUPPORT_WEBSOCKETS=${{matrix.websockets}} -DBUILD_TESTING=${{matrix.test}} -DQMQTT_BUILD_EXAMPLE=ON
+
+    - name: Build
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      # Execute the build.  You can specify a specific target with "--target <NAME>"
+      run: cmake --build . --config $BUILD_TYPE
+
+    - name: Test
+      if: ${{ matrix.test }} == 'ON'
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      # Execute tests defined by the CMake configuration.
+      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+      run: ctest -C $BUILD_TYPE
