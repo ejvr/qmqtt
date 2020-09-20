@@ -1,6 +1,7 @@
 #include <qmqtt_frame.h>
 #include <QScopedPointer>
 #include <QDataStream>
+#include <QIODevice>
 #include <gtest/gtest.h>
 
 using namespace testing;

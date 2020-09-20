@@ -6,10 +6,10 @@ option(QMQTT_SUPPORT_SSL "Add support for SSL sockets" ON)
 option(QMQTT_SUPPORT_WEBSOCKETS "Add support for websockets" OFF)
 
 # Find the required QT libraries
-find_package(Qt5 REQUIRED COMPONENTS Core Network)
+find_package(Qt6 REQUIRED COMPONENTS Core Network)
 
 if (QMQTT_SUPPORT_WEBSOCKETS)
-    find_package(Qt5 REQUIRED COMPONENTS WebSockets)
+    find_package(Qt6 REQUIRED COMPONENTS WebSockets)
 endif()
 
 set(CMAKE_AUTOMOC ON)
@@ -60,11 +60,11 @@ target_compile_definitions(${target_name} PRIVATE -DQT_BUILD_QMQTT_LIB)
 target_include_directories(${target_name} PUBLIC
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
-target_link_libraries(${target_name} PUBLIC Qt5::Core Qt5::Network)
+target_link_libraries(${target_name} PUBLIC Qt6::Core Qt6::Network)
 
 if (QMQTT_SUPPORT_WEBSOCKETS)
     target_compile_definitions(${target_name} PUBLIC -DQT_WEBSOCKETS_LIB)
-    target_link_libraries(${target_name} PUBLIC Qt5::WebSockets)
+    target_link_libraries(${target_name} PUBLIC Qt6::WebSockets)
 endif()
 
 if (NOT QMQTT_SUPPORT_SSL)
@@ -89,11 +89,11 @@ if (BUILD_TESTING)
 
     target_compile_definitions(${static_target_name} PUBLIC -DQT_BUILD_QMQTT_LIB)
     target_include_directories(${static_target_name} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-    target_link_libraries(${static_target_name} PUBLIC Qt5::Core Qt5::Network)
+    target_link_libraries(${static_target_name} PUBLIC Qt6::Core Qt6::Network)
 
     if (QMQTT_SUPPORT_WEBSOCKETS)
         target_compile_definitions(${static_target_name} PUBLIC -DQT_WEBSOCKETS_LIB)
-        target_link_libraries(${static_target_name} PUBLIC Qt5::WebSockets)
+        target_link_libraries(${static_target_name} PUBLIC Qt6::WebSockets)
     endif()
 
     if (NOT QMQTT_SUPPORT_SSL)

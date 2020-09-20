@@ -1,7 +1,7 @@
 set(target_name qmqtt_tests)
 
 # Find the required QT libraries
-find_package(Qt5 REQUIRED COMPONENTS Core Network Test)
+find_package(Qt6 REQUIRED COMPONENTS Core Network Test)
 
 find_package(GTest REQUIRED COMPONENTS gtest gmock CONFIG)
 
@@ -35,6 +35,6 @@ target_link_libraries(${target_name} PRIVATE
     GTest::gtest
     GTest::gmock
     qmqtt_static
-    Qt5::Test)
+    Qt6::Test)
 
 add_test(NAME ${target_name} COMMAND ${target_name})

@@ -27,11 +27,7 @@ public:
 
     void flushEvents()
     {
-        while (QCoreApplication::hasPendingEvents())
-        {
-            QCoreApplication::processEvents(QEventLoop::AllEvents);
-            QCoreApplication::sendPostedEvents(0, QEvent::DeferredDelete);
-        }
+        QCoreApplication::processEvents(QEventLoop::AllEvents);
     }
 
     QSharedPointer<TcpServer> createAndConnectToServer()

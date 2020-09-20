@@ -1,6 +1,7 @@
 #include "customprinter.h"
 
 using namespace testing;
+using namespace Qt;
 
 CustomPrinter::CustomPrinter()
     : qout(stdout)
