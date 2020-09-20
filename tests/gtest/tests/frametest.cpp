@@ -2,6 +2,7 @@
 #include <QScopedPointer>
 #include <QDataStream>
 #include <QIODevice>
+#include <climits>
 #include <gtest/gtest.h>
 
 using namespace testing;
