@@ -16,9 +16,9 @@ jobs:
 
     strategy:
       matrix:
-        qtversion: ['5.9.9', '5.11.3', '5.15.1']
+        qtversion: ['6.0.0']
         ssl: ['ON', 'OFF']
-        websockets: ['ON', 'OFF']
+        websockets: ['OFF']
         test: ['ON']
 
     steps:
