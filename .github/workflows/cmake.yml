@@ -14,9 +14,6 @@ jobs:
     # See: https://docs.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow#configuring-a-build-matrix
     runs-on: ubuntu-latest 
 
-    # continue if a job fails
-    continue-on-error: true
-
     strategy:
       matrix:
         qtversion: ['5.11.3', '5.15.1']
