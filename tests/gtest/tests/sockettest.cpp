@@ -27,7 +27,7 @@ public:
 
     void flushEvents()
     {
-        QCoreApplication::processEvents(QEventLoop::AllEvents);
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 5);
     }
 
     QSharedPointer<TcpServer> createAndConnectToServer()
