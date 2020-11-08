@@ -1,7 +1,5 @@
-option(QMQTT_EXTERNAL_GTEST "Use external google test libraries to compile unittests" OFF)
+find_package(GTest REQUIRED COMPONENTS gtest gmock CONFIG)
 
-if (NOT QMQTT_EXTERNAL_GTEST)
-    add_subdirectory(gtest)
+if (GTest_FOUND)
+    add_subdirectory(tests)
 endif()
-
-add_subdirectory(tests)
