@@ -12,24 +12,14 @@ jobs:
     # well on Windows or Mac.  You can convert this to a matrix build if you need
     # cross-platform coverage.
     # See: https://docs.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow#configuring-a-build-matrix
-    runs-on: ubuntu-latest 
+    runs-on: ubuntu-18.04
 
     strategy:
       matrix:
-        qtversion: ['5.11.3', '5.15.1']
+        qtversion: ['5.9.9', '5.11.3', '5.15.1']
         ssl: ['ON', 'OFF']
         websockets: ['ON', 'OFF']
         test: ['ON']
-        # QT 5.3 does not support websockets, and can't compile the unittests
-        include:
-        - qtversion: '5.3'
-          ssl: 'ON'
-          websockets: 'OFF'
-          test: 'OFF'
-        - qtversion: '5.3'
-          ssl: 'OFF'
-          websockets: 'OFF'
-          test: 'OFF'
 
     steps:
     - uses: actions/checkout@v2
